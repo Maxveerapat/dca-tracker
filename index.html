@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DCA Tracker — ฿1M by Dec 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E4E7E4; --paper-2:#EDEFEC; --rule:#C3C9C3;
+    --ink:#18211D; --graphite:#5C6660; --pine:#2F5D4E; --garnet:#8C3B4A;
+    --btc:#A8641C; --vt:#37504A; --nvda:#4C6B2F; --eth:#6B5B8E;
+    --avgo:#2C5F7A; --mu:#8C3B4A; --etn:#7A6A2E;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .num{font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+  .wrap{max-width:1200px;margin:0 auto;padding:32px 24px 80px}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:18px}
+  h1{font-size:26px;font-weight:700;margin:0 0 4px;letter-spacing:-0.02em}
+  .sub{color:var(--graphite);font-size:14px;margin:0}
+  .grid{display:grid;grid-template-columns:1fr 336px;gap:32px;align-items:start}
+  @media(max-width:960px){.grid{grid-template-columns:1fr}}
+  section{margin-bottom:34px}
+  h2{font-size:13px;font-weight:600;margin:0 0 12px;color:var(--graphite)}
+  h3{font-size:16px;font-weight:600;margin:0 0 8px}
+
+  .pricebar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;background:var(--paper-2);border:1px solid var(--rule);padding:11px 14px;margin-bottom:26px;font-size:13px}
+  .pricebar .status{color:var(--graphite);flex:1}
+  .pricebar .status b{color:var(--ink);font-weight:600}
+  .pricebar button{width:auto;margin:0;padding:7px 12px;font-size:13px;white-space:nowrap}
+  .pricebar button.alt{background:transparent;color:var(--ink);border-color:var(--ink)}
+  .pricebar button.alt:hover{background:#DADEDA}
+  .pricebar input{font-family:inherit;font-size:13px;font-variant-numeric:tabular-nums;padding:6px 7px;border:1px solid var(--rule);background:#fff;text-align:right}
+  .board input.pxin{width:86px}
+
+  /* platform cards */
+  .platforms{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:30px}
+  @media(max-width:620px){.platforms{grid-template-columns:1fr}}
+  .pcard{border:1px solid var(--rule);background:var(--paper-2);padding:15px 16px}
+  .pcard .venue{font-size:12px;color:var(--graphite);margin-bottom:2px}
+  .pcard .pname{font-size:17px;font-weight:600;margin-bottom:10px}
+  .pcard .pv{font-size:24px;font-weight:700;letter-spacing:-0.02em}
+  .pcard .pmeta{font-size:12.5px;color:var(--graphite);margin-top:3px}
+  .pcard .pbar{height:6px;background:#D3D8D3;margin-top:12px;position:relative}
+  .pcard .pbar i{position:absolute;left:0;top:0;bottom:0}
+  .pcard .pbar u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+  .pcard .ptarget{font-size:11.5px;color:var(--graphite);margin-top:5px}
+
+  .board{width:100%;border-collapse:collapse}
+  .board th{font-size:11.5px;font-weight:600;color:var(--graphite);text-align:left;padding:0 8px 8px 0;border-bottom:1px solid var(--rule)}
+  .board th.r,.board td.r{text-align:right}
+  .board td{padding:10px 8px;padding-left:0;border-bottom:1px solid var(--rule);vertical-align:middle}
+  .board tr.group td{background:transparent;border-bottom:2px solid var(--ink);padding-top:22px;padding-bottom:6px;font-size:12px;font-weight:600;color:var(--ink)}
+  .board tr.subtotal td{border-bottom:2px solid var(--ink);font-weight:600;color:var(--ink);font-size:13.5px}
+  .tick{display:inline-block;width:10px;height:10px;margin-right:8px;vertical-align:-1px}
+  .name{font-weight:600}
+  .role{font-size:12px;color:var(--graphite);font-weight:400}
+  .barcell{width:26%;min-width:130px}
+  .bar{position:relative;height:20px;background:#D9DDD9}
+  .bar > .fill{position:absolute;left:0;top:0;bottom:0}
+  .bar > .gap{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,rgba(47,93,78,.30) 0 4px,transparent 4px 8px)}
+  .bar > .target{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+  .px{font-size:12px;color:var(--graphite)}
+  .px.stale{color:var(--garnet)}
+  .nextpct{font-weight:600;color:var(--pine)}
+  .nextpct.zero{color:var(--graphite);font-weight:400}
+  input[type=number]{font-family:inherit;font-size:13.5px;font-variant-numeric:tabular-nums;width:96px;padding:5px 7px;border:1px solid var(--rule);background:#fff;color:var(--ink);text-align:right}
+  input:focus{outline:2px solid var(--pine);outline-offset:1px}
+  .pos{color:var(--pine)} .neg{color:var(--garnet)}
+
+  /* contribution bars */
+  .contrib{margin-bottom:18px}
+  .chead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+  .chead .cwhen{font-size:13.5px;font-weight:600}
+  .chead .cwhen em{font-style:normal;font-weight:400;color:var(--graphite);margin-left:8px}
+  .chead .camt{font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums}
+  .cbar{display:flex;height:30px;width:100%}
+  .cbar div{position:relative;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap}
+  .clegend{font-size:12px;color:var(--graphite);margin-top:4px}
+
+  .ticket{background:var(--ink);color:var(--paper-2);padding:18px}
+  .ticket h3{color:#fff;margin-bottom:2px}
+  .ticket .when{font-size:12.5px;color:#A9B3AD;margin-bottom:14px}
+  .ticket input[type=number]{background:#26312B;border-color:#3C4741;color:#fff;width:100%;text-align:left;font-size:16px;padding:8px}
+  .ticket label{display:block;font-size:12px;color:#A9B3AD;margin:0 0 5px}
+  .orders{margin-top:16px;border-top:1px solid #39443E}
+  .order{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #39443E}
+  .order b{font-weight:600}
+  .order .amt{font-variant-numeric:tabular-nums;text-align:right}
+  .order .amt em{display:block;font-style:normal;font-size:11.5px;color:#A9B3AD}
+  .order i{display:block;font-style:normal;font-size:11.5px;color:#A9B3AD;font-weight:400}
+  .venuesplit{display:flex;justify-content:space-between;font-size:12px;color:#A9B3AD;padding:10px 0 0}
+  .note{font-size:12.5px;color:#A9B3AD;margin-top:12px;line-height:1.45}
+  button{font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;padding:10px 14px;border:1px solid var(--ink);background:var(--ink);color:#fff;width:100%;margin-top:14px}
+  button:hover{background:#26312B}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--rule);margin-top:8px;font-weight:500}
+  button.ghost:hover{background:#DADEDA}
+  button:focus-visible{outline:2px solid var(--pine);outline-offset:2px}
+  .ticket button.ghost{color:var(--paper-2);border-color:#4A554F;background:transparent}
+  .ticket button.ghost:hover{background:#26312B}
+  .rail{background:var(--paper-2);border:1px solid var(--rule);padding:18px}
+  .bignum{font-size:36px;font-weight:700;letter-spacing:-0.03em;line-height:1;margin:2px 0}
+  .rail .cap{font-size:13px;color:var(--graphite)}
+  .track{height:10px;background:#D3D8D3;margin:16px 0 6px;overflow:hidden}
+  .track > i{display:block;height:100%;background:var(--pine)}
+  .marks{display:flex;justify-content:space-between;font-size:11.5px;color:var(--graphite)}
+  .split{display:flex;gap:20px;margin-top:14px;padding-top:14px;border-top:1px solid var(--rule)}
+  .split div{flex:1}
+  .split .k{font-size:12px;color:var(--graphite)}
+  .split .v{font-size:18px;font-weight:600}
+  .rung{display:flex;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--rule)}
+  .rung .amt{font-weight:600;width:78px;flex:none}
+  .rung .what{font-size:13px;color:var(--graphite)}
+  .rung.done .amt{color:var(--pine)}
+
+  @media(max-width:700px){
+    .wrap{padding:20px 14px 60px}
+    h1{font-size:22px}
+    .bignum{font-size:32px}
+    .pricebar{padding:10px 12px}
+    .pricebar .status{flex:1 1 100%}
+    .pricebar button{flex:1 1 auto}
+    .board thead{display:none}
+    .board tbody tr{display:block;padding:14px 0;border-bottom:1px solid var(--rule)}
+    .board tbody tr.group{padding:20px 0 6px;border-bottom:2px solid var(--ink)}
+    .board tbody tr.subtotal{border-bottom:2px solid var(--ink)}
+    .board td{display:flex;justify-content:space-between;align-items:center;gap:14px;
+              padding:6px 0;border:none;text-align:right}
+    .board td:before{content:attr(data-label);font-size:12px;color:var(--graphite);
+                     text-align:left;flex:0 0 auto;font-weight:400}
+    .board td.hold,.board td.barcell{display:block;text-align:left}
+    .board tbody tr.group td{display:block;text-align:left}
+    .board tbody tr.group td:before{content:none}
+    .board td.hold:before,.board td.barcell:before{content:none}
+    .board td.hold{padding-bottom:10px}
+    .board td.barcell{width:auto;min-width:0;padding-bottom:10px}
+    .board td.r{text-align:right}
+    .board input[type=number]{width:120px;padding:9px 8px;font-size:15px}
+    .board input.pxin{width:110px}
+    .board td.hold input.pxin{display:inline-block;margin-left:4px}
+    .cbar{height:26px}
+    .cbar div{font-size:10px}
+    button{padding:12px 14px}
+    #iotext{font-size:16px}
+    #gistid,#gisttoken{font-size:16px;padding:10px}
+    .ticket input[type=number]{font-size:16px;padding:10px}
+  }
+  @media(max-width:420px){
+    .chead .cwhen em{display:block;margin-left:0}
+    .board td.hold .role,.board td.hold .px{margin-left:0 !important}
+  }
+  .disclaimer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--graphite);max-width:70ch}
+  .saved{font-size:12px;color:var(--graphite);margin-top:8px;min-height:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Monthly contribution tracker</h1>
+  <p class="sub">฿30,000 minimum at each month end · target ฿1,000,000 by December 2027 · started 26 August 2026</p>
+</header>
+
+<div class="pricebar">
+  <div class="status" id="status">Checking prices…</div>
+  <label for="fx" style="font-size:12px;color:var(--graphite)">USD/THB</label>
+  <input type="number" id="fx" step="0.01" style="width:80px">
+  <button id="refresh">Refresh prices</button>
+  <button id="viaclaude" class="alt">Fetch via Claude</button>
+</div>
+
+<div class="platforms">
+  <div class="pcard" id="card-crypto"></div>
+  <div class="pcard" id="card-stock"></div>
+</div>
+
+<div class="grid">
+  <main>
+    <section>
+      <h2>Holdings by platform</h2>
+      <table class="board">
+        <thead>
+          <tr>
+            <th style="width:128px">Holding</th>
+            <th class="barcell">Actual against target</th>
+            <th class="r">Weight</th>
+            <th class="r">Units</th>
+            <th class="r">Invested</th>
+            <th class="r">Value now</th>
+            <th class="r">Next buy</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="sub" style="margin-top:10px">Units are yours to keep accurate; prices and the baht conversion update themselves. The hatched stretch is the gap to target — that is where next month's money goes.</p>
+      <div class="saved" id="saved"></div>
+      <div class="saved" id="syncstate" style="color:var(--pine)"></div>
+      <div style="margin-top:10px">
+        <button class="ghost" id="togglesync" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Sync across devices</button>
+        <div id="syncbox" style="display:none;margin-top:10px;max-width:520px">
+          <p class="sub" style="margin-bottom:8px">Paste these once on each device you use. They are stored in this browser only — never in the page, never in the gist.</p>
+          <input id="gistid" placeholder="Gist id" style="width:100%;font-family:inherit;font-size:13px;padding:7px;border:1px solid var(--rule);background:#fff;margin-bottom:6px">
+          <input id="gisttoken" type="password" placeholder="GitHub token with Gists read and write" style="width:100%;font-family:inherit;font-size:13px;padding:7px;border:1px solid var(--rule);background:#fff">
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="ghost" id="syncsave" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Connect and sync</button>
+            <button class="ghost" id="syncclear" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Disconnect</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <button class="ghost" id="toggleio" style="width:auto;padding:7px 12px;font-size:13px">Move data between copies</button>
+        <div id="iobox" style="display:none;margin-top:10px">
+          <p class="sub" style="margin-bottom:6px">Copy this out of one copy of the tracker and paste it into the other, then press Load.</p>
+          <textarea id="iotext" style="width:100%;height:90px;font-family:inherit;font-size:12px;padding:8px;border:1px solid var(--rule);background:#fff"></textarea>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <button class="ghost" id="ioload" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Load pasted data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Every contribution, and what it bought</h2>
+      <div id="contribs"></div>
+    </section>
+  </main>
+
+  <aside>
+    <section>
+      <div class="rail">
+        <div class="cap">Portfolio value</div>
+        <div class="bignum num" id="value">฿0</div>
+        <div class="cap num" id="basis">฿0 contributed</div>
+        <div class="track"><i id="goalfill" style="width:0%"></i></div>
+        <div class="marks"><span id="goalpct">0%</span><span>฿1,000,000</span></div>
+        <div class="split">
+          <div><div class="k">Gain / loss</div><div class="v num" id="pnl">฿0</div></div>
+          <div><div class="k">Contributions</div><div class="v num" id="months">2 of 17</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="ticket">
+        <h3>Next buy</h3>
+        <div class="when">30 September 2026 · month 3</div>
+        <label for="cash">Amount to invest</label>
+        <input type="number" id="cash" value="30000" min="1000" step="1000">
+        <div class="orders" id="orders"></div>
+        <div class="venuesplit" id="venuesplit"></div>
+        <p class="note" id="ticketnote"></p>
+        <button id="record">Record this as bought</button>
+        <button class="ghost" id="undo">Undo last contribution</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>De-risking triggers</h2>
+      <div class="rung" id="r600"><span class="amt num">฿600k</span><span class="what">Move 10% of crypto into VT</span></div>
+      <div class="rung" id="r800"><span class="amt num">฿800k</span><span class="what">Move another 10%; no more leverage</span></div>
+      <div class="rung" id="r950"><span class="amt num">฿950k</span><span class="what">Shift to 60% defensive — race is run</span></div>
+      <p class="sub" style="margin-top:10px">Also standing: freeze crypto buys for eight weeks if Bitcoin sits 30% below your average cost.</p>
+    </section>
+  </aside>
+</div>
+
+<p class="disclaimer">This tracks the plan; it does not predict it. At realistic returns ฿30,000 a month lands nearer ฿600,000 than ฿1,000,000 by December 2027 — raising the monthly amount closes that gap far more reliably than changing what you hold. Not financial advice.</p>
+
+</div>
+
+<script>
+const FINNHUB_KEY="daahkthr01qvosodh3sgdaahkthr01qvosodh3t0";
+
+/* ============================================================
+   CROSS-DEVICE SYNC  —  fill these two in once, then every
+   device that opens this file shares the same data.
+   1. gist.github.com → new SECRET gist, filename dca-state.json,
+      content {}  → Create. Copy the id from the URL.
+   2. github.com/settings/tokens → fine-grained token,
+      Account permissions → Gists: Read and write. Copy it.
+   Leave blank to keep data on this device only.
+   ============================================================ */
+const GIST_FILE = "dca-state.json";
+const SYNC_KEY  = "dca:sync";           // creds stay in THIS browser, never in the file, never in the gist
+let SYNC={id:"",token:""};
+function loadSync(){try{const v=window.localStorage.getItem(SYNC_KEY);if(v)SYNC=JSON.parse(v)}catch(e){}}
+function saveSync(){try{window.localStorage.setItem(SYNC_KEY,JSON.stringify(SYNC))}catch(e){}}
+const syncOn = () => !!(SYNC.id && SYNC.token);
+const VENUES={crypto:{name:"Binance",label:"Crypto"},stock:{name:"Dime",label:"Stocks & ETFs"}};
+const TARGETS=[
+ {t:"BTC", role:"Convexity",         pct:26, color:"#A8641C", kind:"crypto", id:"bitcoin"},
+ {t:"ETH", role:"Crypto beta",       pct:11, color:"#6B5B8E", kind:"crypto", id:"ethereum"},
+ {t:"VT",  role:"Global anchor",     pct:20, color:"#37504A", kind:"stock"},
+ {t:"NVDA",role:"AI compute",        pct:18, color:"#4C6B2F", kind:"stock"},
+ {t:"AVGO",role:"Custom silicon",    pct:9,  color:"#2C5F7A", kind:"stock"},
+ {t:"MU",  role:"Memory cycle",      pct:9,  color:"#8C3B4A", kind:"stock"},
+ {t:"ETN", role:"Data-centre power", pct:7,  color:"#7A6A2E", kind:"stock"}
+];
+const byT=t=>TARGETS.find(h=>h.t===t);
+
+const SEED={
+ contributions:[
+  {date:"26 Aug 2026", buys:{VT:20000,BTC:20000,ETN:6000,ETH:4000}},
+  {date:"31 Aug 2026", buys:{NVDA:18000,AVGO:13000,MU:5000,ETH:7000,BTC:6000,ETN:1000}}
+ ],
+ units:{},
+ fx:33.0,
+ prices:{BTC:79000, ETH:2475, NVDA:215, AVGO:368.79, MU:935, ETN:415}
+};
+
+let state=null, prices={}, fxRate=33.0, unitsSeeded=false;
+const $=id=>document.getElementById(id);
+const baht=n=>"฿"+Math.round(n).toLocaleString("en-US");
+const k=n=>"฿"+Math.round(n/1000)+"k";
+const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);
+
+function costBasis(){const c={};TARGETS.forEach(h=>c[h.t]=0);
+ state.contributions.forEach(x=>{for(const q in x.buys)c[q]=(c[q]||0)+x.buys[q]});return c}
+function valueOf(t){const p=prices[t];return p?(state.units[t]||0)*p*fxRate:0}
+function totalValue(){return TARGETS.reduce((a,h)=>a+valueOf(h.t),0)}
+function contribTotal(c){return sum(c.buys)}
+
+const KEY="dca:v3";
+let storeMode="none";           // claude | local | none
+async function storeGet(){
+ try{const r=await window.storage.get(KEY);if(r&&r.value){storeMode="claude";return r.value}}catch(e){}
+ try{const v=window.localStorage.getItem(KEY);if(v){storeMode="local";return v}}catch(e){}
+ // nothing saved yet — work out which backend is available for writing
+ try{await window.storage.set(KEY+":probe","1");storeMode="claude";return null}catch(e){}
+ try{window.localStorage.setItem(KEY+":probe","1");storeMode="local";return null}catch(e){}
+ return null;
+}
+async function storeSet(v){
+ if(storeMode==="claude"){const ok=await window.storage.set(KEY,v);return !!ok}
+ if(storeMode==="local"){window.localStorage.setItem(KEY,v);return true}
+ return false;
+}
+async function cloudGet(){
+ if(!syncOn())return null;
+ try{
+  const r=await fetch(`https://api.github.com/gists/${SYNC.id}`,{
+   headers:{Authorization:`Bearer ${SYNC.token}`,Accept:"application/vnd.github+json"},cache:"no-store"});
+  if(!r.ok)throw new Error(r.status);
+  const j=await r.json();
+  const f=j.files&&j.files[GIST_FILE];
+  if(!f||!f.content)return null;
+  const parsed=JSON.parse(f.content);
+  return parsed&&parsed.contributions?parsed:null;
+ }catch(e){return null}
+}
+async function cloudPut(obj){
+ if(!syncOn())return false;
+ try{
+  const r=await fetch(`https://api.github.com/gists/${SYNC.id}`,{
+   method:"PATCH",
+   headers:{Authorization:`Bearer ${SYNC.token}`,Accept:"application/vnd.github+json","Content-Type":"application/json"},
+   body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(obj,null,1)}}})});
+  return r.ok;
+ }catch(e){return false}
+}
+function syncNote(txt){const el=$("syncstate");if(el)el.textContent=txt}
+
+async function loadState(){
+ try{const raw=await storeGet();if(raw)state=JSON.parse(raw)}catch(e){}
+ if(syncOn()){
+  syncNote("Syncing…");
+  const remote=await cloudGet();
+  if(remote){
+   // newest wins; a device that was offline never clobbers fresher data
+   const lt=(state&&state.updatedAt)||0, rt=remote.updatedAt||0;
+   if(!state||rt>=lt){state=remote;syncNote("Synced from your gist.")}
+   else syncNote("This device had newer data — pushing it up.");
+  }else syncNote("Sync ready — nothing stored in the gist yet.");
+ }
+ if(!state)state=JSON.parse(JSON.stringify(SEED));
+ if(!state.units)state.units={};
+ if(!state.prices)state.prices=JSON.parse(JSON.stringify(SEED.prices));
+ prices=Object.assign({},state.prices);
+ if(state.fx)fxRate=state.fx;
+ $("fx").value=fxRate.toFixed(2);
+}
+function persistPrices(){state.prices=Object.assign({},prices);state.fx=fxRate}
+let pushTimer=null;
+async function save(msg){
+ persistPrices();
+ state.updatedAt=Date.now();
+ try{
+  const ok=await storeSet(JSON.stringify(state));
+  $("saved").textContent = ok ? (msg||"Saved.") : "Changes held for this session only — this browser is blocking storage.";
+ }catch(e){$("saved").textContent="Changes held for this session only — this browser is blocking storage."}
+ if(syncOn()){
+  clearTimeout(pushTimer);
+  syncNote("Saving to your gist…");
+  pushTimer=setTimeout(async()=>{
+   const ok=await cloudPut(state);
+   syncNote(ok?`Synced across devices · ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}`
+              :"Could not reach the gist — changes are safe on this device and will go up next time.");
+  },1200);
+ }
+}
+async function fetchFx(){
+ try{const r=await fetch("https://api.frankfurter.app/latest?from=USD&to=THB");const j=await r.json();
+  if(j&&j.rates&&j.rates.THB){fxRate=j.rates.THB;state.fx=fxRate;return true}}catch(e){}
+ return false;
+}
+async function fetchCrypto(){
+ try{const r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd");
+  const j=await r.json();if(j.bitcoin)prices.BTC=j.bitcoin.usd;if(j.ethereum)prices.ETH=j.ethereum.usd;
+  return !!(j.bitcoin&&j.ethereum)}catch(e){return false}
+}
+async function fetchStocks(){
+ const names=TARGETS.filter(h=>h.kind==="stock").map(h=>h.t);let ok=0;
+ for(const t of names){
+  try{const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${t}&token=${FINNHUB_KEY}`);
+   const j=await r.json();if(j&&j.c>0){prices[t]=j.c;ok++}}catch(e){}
+ }
+ return ok===names.length?"all":(ok?"some":"fail");
+}
+function seedUnitsFromCost(){
+ const basis=costBasis();let did=false;
+ TARGETS.forEach(h=>{if(!state.units[h.t]&&prices[h.t]&&basis[h.t]>0){
+  state.units[h.t]=basis[h.t]/(prices[h.t]*fxRate);did=true}});
+ if(did){unitsSeeded=true;save("")}
+}
+async function refresh(){
+ $("status").textContent="Fetching prices…";
+ const fx=await fetchFx(), cr=await fetchCrypto(), st=await fetchStocks();
+ seedUnitsFromCost();
+ const time=new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+ let msg;
+ if(cr||st==="all"||st==="some"){
+  msg=`<b>Prices updated ${time}</b> · USD/THB ${fxRate.toFixed(2)}.`;
+  if(st!=="all")msg+=" Some stock quotes did not return — rate limit or a closed market; last figures kept.";
+ }else{
+  msg="<b>Direct price feeds are blocked in this viewer.</b> Download the file and open it in your browser for automatic quotes, press Fetch via Claude, or type prices into the price column.";
+ }
+ if(unitsSeeded)msg+=" Units were estimated from your baht cost — check them against Binance and Dime once.";
+ $("status").innerHTML=msg;
+ $("fx").value=fxRate.toFixed(2);
+ save("");render();
+}
+
+async function fetchViaClaude(){
+ $("status").innerHTML="Asking Claude to look up prices…";
+ const tickers=TARGETS.map(h=>h.t).join(", ");
+ try{
+  const r=await fetch("https://api.anthropic.com/v1/messages",{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    model:"claude-sonnet-4-6",max_tokens:1000,
+    messages:[{role:"user",content:`Search the web for the latest price of each: ${tickers} (BTC and ETH in USD; the rest are US-listed stocks/ETFs in USD), and the USD to THB exchange rate. Reply with ONLY a JSON object, no preamble, no markdown fences: {"BTC":number,"ETH":number,"VT":number,"NVDA":number,"AVGO":number,"MU":number,"ETN":number,"USDTHB":number}`}],
+    tools:[{type:"web_search_20250305",name:"web_search"}]
+   })});
+  const data=await r.json();
+  const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  const m=text.replace(/```json|```/g,"").match(/\{[\s\S]*\}/);
+  if(!m)throw new Error("no json");
+  const j=JSON.parse(m[0]);
+  let n=0;
+  TARGETS.forEach(h=>{if(typeof j[h.t]==="number"&&j[h.t]>0){prices[h.t]=j[h.t];n++}});
+  if(typeof j.USDTHB==="number"&&j.USDTHB>0){fxRate=j.USDTHB;$("fx").value=fxRate.toFixed(2)}
+  seedUnitsFromCost();
+  $("status").innerHTML=`<b>${n} prices retrieved via Claude</b> · USD/THB ${fxRate.toFixed(2)}. Web-sourced quotes can lag the market — correct any that look wrong.`;
+  save("");render();
+ }catch(e){
+  $("status").innerHTML="Claude lookup did not return usable prices. Type them into the price column instead.";
+ }
+}
+
+function planBuy(cash){
+ const vals={};TARGETS.forEach(h=>vals[h.t]=valueOf(h.t));
+ const total=sum(vals)+cash;
+ const slots = cash<=35000?3:(cash<=60000?4:5);
+ let d=TARGETS.map(h=>({t:h.t,need:Math.max(0,total*h.pct/100-vals[h.t])}))
+   .filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,slots);
+ if(!d.length)d=TARGETS.slice(0,3).map(h=>({t:h.t,need:1}));
+ const need=d.reduce((a,b)=>a+b.need,0);
+ let out=d.map(x=>({t:x.t,amt:cash*x.need/need})).filter(o=>o.amt>=cash*0.04);
+ const scale=cash/out.reduce((a,b)=>a+b.amt,0);
+ out=out.map(o=>({t:o.t,amt:Math.round(o.amt*scale/500)*500}));
+ const diff=cash-out.reduce((a,b)=>a+b.amt,0);
+ if(diff&&out.length)out[0].amt+=diff;          // largest order absorbs the rounding
+ return out.filter(o=>o.amt>0);
+}
+
+function renderPlatformCards(){
+ const basis=costBasis(),total=totalValue();
+ ["crypto","stock"].forEach(kind=>{
+  const hs=TARGETS.filter(h=>h.kind===kind);
+  const inv=hs.reduce((a,h)=>a+(basis[h.t]||0),0);
+  const val=hs.reduce((a,h)=>a+valueOf(h.t),0);
+  const tgt=hs.reduce((a,h)=>a+h.pct,0);
+  const w=total?val/total*100:0;
+  const pnl=val-inv;
+  $("card-"+kind).innerHTML=`
+   <div class="venue">${VENUES[kind].name}</div>
+   <div class="pname">${VENUES[kind].label}</div>
+   <div class="pv num">${baht(val)}</div>
+   <div class="pmeta num">${baht(inv)} invested · <span class="${pnl>=0?'pos':'neg'}">${pnl>=0?"+":"−"}${baht(Math.abs(pnl))}</span></div>
+   <div class="pbar"><i style="width:${Math.min(100,w)}%;background:${hs[0].color}"></i><u style="left:${tgt}%"></u></div>
+   <div class="ptarget num">${w.toFixed(1)}% of portfolio · ${tgt}% target</div>`;
+ });
+}
+
+function render(){
+ const basis=costBasis(),invested=sum(basis),total=totalValue();
+ const plan=planBuy(Math.max(0,+$("cash").value||0));
+ const planMap={};plan.forEach(o=>planMap[o.t]=o.amt);
+ const planTotal=plan.reduce((a,b)=>a+b.amt,0)||1;
+
+ $("value").textContent=baht(total);
+ $("basis").textContent=baht(invested)+" contributed";
+ const pnl=total-invested;
+ $("pnl").textContent=(pnl>=0?"+":"−")+baht(Math.abs(pnl));
+ $("pnl").className="v num "+(pnl>=0?"pos":"neg");
+ const pct=Math.min(100,total/1000000*100);
+ $("goalfill").style.width=pct+"%";
+ $("goalpct").textContent=pct.toFixed(1)+"% of goal";
+ $("months").textContent=state.contributions.length+" of 17";
+ [["r600",600000],["r800",800000],["r950",950000]].forEach(([id,lvl])=>$(id).classList.toggle("done",total>=lvl));
+
+ renderPlatformCards();
+
+ const rows=$("rows");rows.innerHTML="";
+ const maxPct=Math.max(30,...TARGETS.map(h=>h.pct));
+ ["crypto","stock"].forEach(kind=>{
+  const hs=TARGETS.filter(h=>h.kind===kind);
+  rows.insertAdjacentHTML("beforeend",
+   `<tr class="group"><td colspan="7">${VENUES[kind].label} · ${VENUES[kind].name}</td></tr>`);
+  hs.forEach(h=>{
+   const v=valueOf(h.t),w=total?v/total*100:0,drift=w-h.pct,p=prices[h.t];
+   const u=state.units[h.t]||0;
+   const nb=planMap[h.t]||0;
+   const tr=document.createElement("tr");
+   tr.innerHTML=`
+    <td class="hold"><span class="tick" style="background:${h.color}"></span><span class="name">${h.t}</span><br>
+        <span class="role" style="margin-left:18px">${h.role}</span><br>
+        <span style="margin-left:18px;font-size:12px;color:var(--graphite)">$</span><input class="pxin" type="number" step="0.01" value="${p||0}" data-px="${h.t}"></td>
+    <td class="barcell" data-label="Against target"><div class="bar">
+      <div class="fill" style="width:${Math.min(100,w/maxPct*100)}%;background:${h.color}"></div>
+      ${drift<0?`<div class="gap" style="left:${w/maxPct*100}%;width:${Math.min(100,-drift/maxPct*100)}%"></div>`:``}
+      <div class="target" style="left:${h.pct/maxPct*100}%"></div></div></td>
+    <td class="r num" data-label="Weight">${w.toFixed(1)}%<br><span class="role">${h.pct}% target</span></td>
+    <td class="r" data-label="Units held"><input type="number" step="${h.kind==="crypto"?"0.00001":"0.0001"}" value="${u?u.toFixed(h.kind==="crypto"?6:4):0}" data-t="${h.t}"></td>
+    <td class="r num" data-label="Invested">${baht(basis[h.t]||0)}</td>
+    <td class="r num" data-label="Value now">${baht(v)}<br><span class="role ${v-(basis[h.t]||0)>=0?'pos':'neg'}">${v?((v-(basis[h.t]||0))>=0?"+":"−")+baht(Math.abs(v-(basis[h.t]||0))):"—"}</span></td>
+    <td class="r num nextpct ${nb?"":"zero"}" data-label="Next buy">${nb?(nb/planTotal*100).toFixed(0)+"%":"—"}<br><span class="role">${nb?baht(nb):"nothing"}</span></td>`;
+   rows.appendChild(tr);
+  });
+  const inv=hs.reduce((a,h)=>a+(basis[h.t]||0),0), val=hs.reduce((a,h)=>a+valueOf(h.t),0);
+  const nb=hs.reduce((a,h)=>a+(planMap[h.t]||0),0);
+  rows.insertAdjacentHTML("beforeend",
+   `<tr class="subtotal"><td colspan="4" class="hold">${VENUES[kind].name} total</td>
+    <td class="r num" data-label="Invested">${baht(inv)}</td><td class="r num" data-label="Value now">${baht(val)}</td>
+    <td class="r num" data-label="Next buy">${nb?(nb/planTotal*100).toFixed(0)+"%":"—"}</td></tr>`);
+ });
+ rows.querySelectorAll("input[data-t]").forEach(inp=>inp.addEventListener("change",e=>{
+  state.units[e.target.dataset.t]=Math.max(0,+e.target.value||0);unitsSeeded=false;save("Saved.");render();
+ }));
+ rows.querySelectorAll("input[data-px]").forEach(inp=>inp.addEventListener("change",e=>{
+  prices[e.target.dataset.px]=Math.max(0,+e.target.value||0);seedUnitsFromCost();save("Price saved.");render();
+ }));
+
+ const cw=$("contribs");cw.innerHTML="";
+ state.contributions.forEach((c,i)=>{
+  const tot=contribTotal(c);
+  const parts=Object.entries(c.buys).sort((a,b)=>b[1]-a[1]);
+  const segs=parts.map(([t,v])=>{
+   const pc=v/tot*100;
+   return `<div style="width:${pc}%;background:${byT(t).color}" title="${t} ${baht(v)}">${pc>9?t:""}</div>`}).join("");
+  const cryptoAmt=parts.filter(([t])=>byT(t).kind==="crypto").reduce((a,b)=>a+b[1],0);
+  cw.insertAdjacentHTML("beforeend",`
+   <div class="contrib">
+     <div class="chead"><span class="cwhen">Month ${i+1}<em>${c.date}</em></span><span class="camt">${baht(tot)}</span></div>
+     <div class="cbar">${segs}</div>
+     <div class="clegend">Binance ${baht(cryptoAmt)} · Dime ${baht(tot-cryptoAmt)}</div>
+   </div>`);
+ });
+
+ drawTicket(plan,planTotal);
+}
+
+function drawTicket(plan,planTotal){
+ $("orders").innerHTML=plan.map(o=>{
+  const h=byT(o.t),p=prices[o.t],u=p?o.amt/(p*fxRate):null;
+  return `<div class="order">
+   <b><span class="tick" style="background:${h.color}"></span>${o.t}<i>${VENUES[h.kind].name}${u?` · about ${u<1?u.toFixed(5):u.toFixed(3)} units`:""}</i></b>
+   <span class="amt">${baht(o.amt)}<em>${(o.amt/planTotal*100).toFixed(0)}%</em></span></div>`}).join("");
+ const c=plan.filter(o=>byT(o.t).kind==="crypto").reduce((a,b)=>a+b.amt,0);
+ $("venuesplit").innerHTML=`<span>Binance ${baht(c)}</span><span>Dime ${baht(planTotal-c)}</span>`;
+ $("ticketnote").textContent=`${plan.map(o=>o.t).join(", ")} sit furthest below target, so this month's money goes there. Batched into ${plan.length} orders so fees and FX stay small.`;
+}
+
+$("togglesync").addEventListener("click",()=>{
+ const b=$("syncbox");const open=b.style.display==="none";
+ b.style.display=open?"block":"none";
+ if(open){$("gistid").value=SYNC.id||"";$("gisttoken").value=SYNC.token||""}
+});
+$("syncsave").addEventListener("click",async()=>{
+ SYNC={id:$("gistid").value.trim(),token:$("gisttoken").value.trim()};saveSync();
+ if(!syncOn()){syncNote("Enter both the gist id and the token.");return}
+ syncNote("Connecting…");
+ const remote=await cloudGet();
+ if(remote&&(remote.updatedAt||0)>(state.updatedAt||0)){
+  state=remote;prices=Object.assign({},state.prices||{});
+  if(state.fx){fxRate=state.fx;$("fx").value=fxRate.toFixed(2)}
+  syncNote("Connected — pulled the newer copy from your gist.");render();
+ }else{
+  const ok=await cloudPut(state);
+  syncNote(ok?"Connected — this device's data is now in the gist.":"Could not reach the gist. Check the id and the token's Gists permission.");
+ }
+});
+$("syncclear").addEventListener("click",()=>{
+ SYNC={id:"",token:""};saveSync();syncNote("Disconnected — this device now keeps its own copy.");
+});
+$("toggleio").addEventListener("click",()=>{
+ const b=$("iobox");const open=b.style.display==="none";
+ b.style.display=open?"block":"none";
+ if(open){persistPrices();$("iotext").value=JSON.stringify(state);$("iotext").select()}
+});
+$("ioload").addEventListener("click",()=>{
+ try{
+  const j=JSON.parse($("iotext").value);
+  if(!j.contributions||!j.units)throw new Error("shape");
+  state=j;
+  if(!state.prices)state.prices={};
+  prices=Object.assign({},state.prices);
+  if(state.fx){fxRate=state.fx;$("fx").value=fxRate.toFixed(2)}
+  save("Data loaded.");render();
+ }catch(e){$("saved").textContent="That text is not a valid tracker export — copy the whole box, including the braces."}
+});
+$("cash").addEventListener("input",render);
+$("refresh").addEventListener("click",refresh);
+$("viaclaude").addEventListener("click",fetchViaClaude);
+$("fx").addEventListener("change",e=>{fxRate=Math.max(1,+e.target.value||33);seedUnitsFromCost();save("Rate saved.");render()});
+$("record").addEventListener("click",()=>{
+ const cash=Math.max(0,+$("cash").value||0);if(!cash)return;
+ const plan=planBuy(cash),buys={};
+ plan.forEach(o=>{buys[o.t]=o.amt;if(prices[o.t])state.units[o.t]=(state.units[o.t]||0)+o.amt/(prices[o.t]*fxRate)});
+ const date=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+ state.contributions.push({date,buys});
+ save("Contribution recorded at today's prices.");render();
+});
+$("undo").addEventListener("click",()=>{
+ if(state.contributions.length<=2)return;
+ const last=state.contributions.pop();
+ for(const q in last.buys){if(prices[q])state.units[q]=Math.max(0,(state.units[q]||0)-last.buys[q]/(prices[q]*fxRate))}
+ save("Last contribution removed.");render();
+});
+
+(async()=>{
+ loadSync();
+ if(!syncOn())setTimeout(()=>syncNote("Data is on this device only. Press Sync across devices to share it with your phone and laptop."),0);
+ await loadState();seedUnitsFromCost();render();await refresh();
+})();
+</script>
+</body>
+</html>
