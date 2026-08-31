@@ -201,6 +201,7 @@
       <div class="saved" id="syncstate" style="color:var(--pine)"></div>
       <div style="margin-top:10px">
         <button class="ghost" id="togglesync" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Sync across devices</button>
+        <button class="ghost" id="syncnow" style="width:auto;padding:7px 12px;font-size:13px;margin:0 0 0 8px">Sync now</button>
         <div id="syncbox" style="display:none;margin-top:10px;max-width:520px">
           <p class="sub" style="margin-bottom:8px">Paste these once on each device you use. They are stored in this browser only — never in the page, never in the gist.</p>
           <input id="gistid" placeholder="Gist id" style="width:100%;font-family:inherit;font-size:13px;padding:7px;border:1px solid var(--rule);background:#fff;margin-bottom:6px">
@@ -372,8 +373,9 @@ async function loadState(){
   if(remote){
    // newest wins; a device that was offline never clobbers fresher data
    const lt=(state&&state.updatedAt)||0, rt=remote.updatedAt||0;
-   if(!state||rt>=lt){state=remote;syncNote("Synced from your gist.")}
-   else syncNote("This device had newer data — pushing it up.");
+   if(!state||rt>=lt){state=remote;syncNote("Pulled the newer copy from your gist ("+stamp(rt)+").")}
+   else {syncNote("This device was newer — uploading it now…");await cloudPut(state);
+         syncNote("Uploaded this device's copy ("+stamp(lt)+").");}
   }else syncNote("Sync ready — nothing stored in the gist yet.");
  }
  if(!state)state=JSON.parse(JSON.stringify(SEED));
@@ -384,7 +386,16 @@ async function loadState(){
  $("fx").value=fxRate.toFixed(2);
 }
 function persistPrices(){state.prices=Object.assign({},prices);state.fx=fxRate}
-let pushTimer=null;
+let pushTimer=null, pushPending=false;
+function stamp(ms){try{return new Date(ms).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){return "unknown time"}}
+async function pushNow(){
+ if(!syncOn())return false;
+ const ok=await cloudPut(state);
+ pushPending=!ok;
+ syncNote(ok?("Synced to your gist · "+stamp(state.updatedAt))
+            :"NOT synced — this change is only on this device. Press Sync now to retry.");
+ return ok;
+}
 async function save(msg){
  persistPrices();
  state.updatedAt=Date.now();
@@ -393,13 +404,10 @@ async function save(msg){
   $("saved").textContent = ok ? (msg||"Saved.") : "Changes held for this session only — this browser is blocking storage.";
  }catch(e){$("saved").textContent="Changes held for this session only — this browser is blocking storage."}
  if(syncOn()){
+  pushPending=true;
   clearTimeout(pushTimer);
   syncNote("Saving to your gist…");
-  pushTimer=setTimeout(async()=>{
-   const ok=await cloudPut(state);
-   syncNote(ok?`Synced across devices · ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}`
-              :"Could not reach the gist — changes are safe on this device and will go up next time.");
-  },1200);
+  pushTimer=setTimeout(pushNow,400);          // was 1200 — long enough to lose on a phone
  }
 }
 async function fetchFx(){
@@ -614,6 +622,19 @@ $("syncsave").addEventListener("click",async()=>{
   syncNote(ok?"Connected — this device's data is now in the gist.":"Could not reach the gist. Check the id and the token's Gists permission.");
  }
 });
+$("syncnow").addEventListener("click",async()=>{
+ if(!syncOn()){syncNote("Not connected on this device — press Sync across devices and paste the gist id and token.");return}
+ syncNote("Checking the gist…");
+ const remote=await cloudGet();
+ const rt=(remote&&remote.updatedAt)||0, lt=state.updatedAt||0;
+ if(remote&&rt>lt){
+  state=remote;prices=Object.assign({},state.prices||{});
+  if(state.fx){fxRate=state.fx;$("fx").value=fxRate.toFixed(2)}
+  syncNote("Pulled newer data from your gist ("+stamp(rt)+").");render();
+ }else{
+  await pushNow();
+ }
+});
 $("syncclear").addEventListener("click",()=>{
  SYNC={id:"",token:""};saveSync();syncNote("Disconnected — this device now keeps its own copy.");
 });
@@ -651,6 +672,18 @@ $("undo").addEventListener("click",()=>{
  for(const q in last.buys){if(prices[q])state.units[q]=Math.max(0,(state.units[q]||0)-last.buys[q]/(prices[q]*fxRate))}
  save("Last contribution removed.");render();
 });
+
+function flush(){
+ if(!syncOn()||!pushPending)return;
+ try{
+  const blob=new Blob([JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(state)}}})],{type:"application/json"});
+  // sendBeacon cannot carry an auth header, so fall back to a keepalive fetch
+  fetch(`https://api.github.com/gists/${SYNC.id}`,{method:"PATCH",keepalive:true,
+   headers:{Authorization:`Bearer ${SYNC.token}`,"Content-Type":"application/json"},body:blob});
+ }catch(e){}
+}
+window.addEventListener("pagehide",flush);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush()});
 
 (async()=>{
  loadSync();
