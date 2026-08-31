@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DCA Tracker — ฿1M by Dec 2027</title>
+<link rel="icon" href="data:image/svg%2Bxml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2318211D'/%3E%3Cpath d='M20,78 L20,38 L50,60 L80,20 L80,78' fill='none' stroke='%23E4E7E4' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='80' cy='20' r='6' fill='%23A8641C'/%3E%3Crect x='16' y='84' width='68' height='4' fill='%232F5D4E'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#18211D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DCA">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -59,11 +66,21 @@
   .tick{display:inline-block;width:10px;height:10px;margin-right:8px;vertical-align:-1px}
   .name{font-weight:600}
   .role{font-size:12px;color:var(--graphite);font-weight:400}
-  .barcell{width:26%;min-width:130px}
+  .barcell{width:30%;min-width:150px}
   .bar{position:relative;height:20px;background:#D9DDD9}
   .bar > .fill{position:absolute;left:0;top:0;bottom:0}
   .bar > .gap{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,rgba(47,93,78,.30) 0 4px,transparent 4px 8px)}
   .bar > .target{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+  .bar{margin-bottom:16px}
+  .pbar{position:relative;display:flex;height:22px;background:#D9DDD9;overflow:visible}
+  .pseg{height:100%;display:block;box-shadow:inset -1px 0 0 var(--paper-2)}
+  .ptick{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+  .barnow{position:absolute;top:0;line-height:20px;font-size:11px;font-weight:700;
+          font-variant-numeric:tabular-nums;pointer-events:none;white-space:nowrap}
+  .bartgt{position:absolute;top:22px;transform:translateX(-50%);font-size:10px;color:var(--graphite);
+          white-space:nowrap;pointer-events:none}
+  .barcap{font-size:11.5px;color:var(--graphite);margin-top:2px}
+  .barcap b{font-weight:600}
   .px{font-size:12px;color:var(--graphite)}
   .px.stale{color:var(--garnet)}
   .nextpct{font-weight:600;color:var(--pine)}
@@ -153,6 +170,54 @@
     .chead .cwhen em{display:block;margin-left:0}
     .board td.hold .role,.board td.hold .px{margin-left:0 !important}
   }
+
+  .fold{border-top:1px solid var(--rule);margin:0}
+  .fold:last-of-type{border-bottom:1px solid var(--rule)}
+  .foldhead{display:flex;justify-content:space-between;align-items:center;width:100%;
+    background:none;border:none;color:var(--ink);font-family:inherit;font-size:15px;font-weight:600;
+    padding:16px 2px;margin:0;cursor:pointer;text-align:left}
+  .foldhead:hover{background:transparent;color:var(--pine)}
+  .foldhead i{font-style:normal;font-size:20px;font-weight:400;color:var(--graphite);line-height:1}
+  .foldhead i:after{content:"+"}
+  .fold.open .foldhead i:after{content:"–"}
+  .foldbody{display:none;padding:0 0 30px}
+  .fold.open .foldbody{display:block}
+  .fold[data-fold="dash"] .foldhead{font-size:13px;color:var(--graphite);text-transform:none}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+        border:1px solid var(--rule);margin-bottom:22px}
+  .kpi{background:var(--paper-2);padding:14px}
+  .kpi .k{font-size:11.5px;color:var(--graphite);margin-bottom:4px}
+  .kpi .v{font-size:22px;font-weight:700;letter-spacing:-0.02em;line-height:1.15}
+  .kpi .s{font-size:12px;color:var(--graphite);margin-top:3px}
+  .kpi .track{display:block;height:6px;background:#D3D8D3;margin-top:7px}
+  .kpi .track i{display:block;height:100%;background:var(--pine)}
+  @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:420px){.kpis{grid-template-columns:1fr}}
+
+  .warn{border:1px solid var(--garnet);border-left-width:4px;background:#EFE7E7;
+        padding:10px 13px;font-size:13px;color:var(--ink);margin-bottom:20px}
+  .chartbox{border:1px solid var(--rule);background:var(--paper-2);padding:16px;margin-bottom:20px}
+  .chartbox .ct{font-size:14px;font-weight:600;margin:0 0 3px}
+  .chartbox .cs{font-size:12.5px;color:var(--graphite);margin:0 0 12px}
+  .chartbox svg{display:block;width:100%;height:auto;overflow:visible}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:820px){.two{grid-template-columns:1fr}}
+  .cthead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px}
+  .cthead .ct{margin-bottom:3px}
+  .cthead .cs{margin:0}
+  button.tgl{width:auto;margin:0;padding:7px 11px;font-size:12.5px;white-space:nowrap;flex:none}
+  .mixdetail{margin-top:12px;padding-top:10px;border-top:1px solid var(--rule);font-size:13px;color:var(--graphite);min-height:20px}
+  .mixdetail b{color:var(--ink)}
+  .mixrow{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .mixlbl{flex:0 0 52px;font-size:12.5px;font-weight:600}
+  .mixbar{flex:1;display:flex;height:34px;overflow:hidden}
+  .mixbar i{display:flex;align-items:center;justify-content:center;font-style:normal;
+            font-size:10px;font-weight:600;color:#fff;overflow:hidden;white-space:nowrap;cursor:pointer}
+  .mixbar i:hover{filter:brightness(1.15)}
+  .lgd{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--graphite);margin-top:10px}
+  .lgd span{display:flex;align-items:center;gap:6px}
+  .lgd u{display:inline-block;width:14px;height:3px;text-decoration:none}
   .disclaimer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--graphite);max-width:70ch}
   .saved{font-size:12px;color:var(--graphite);margin-top:8px;min-height:16px}
 </style>
@@ -173,106 +238,140 @@
   <button id="viaclaude" class="alt">Fetch via Claude</button>
 </div>
 
-<div class="platforms">
-  <div class="pcard" id="card-crypto"></div>
-  <div class="pcard" id="card-stock"></div>
-</div>
+<!-- ================= DASHBOARD ================= -->
+<section class="fold open" data-fold="dash">
+  <button class="foldhead"><span>Dashboard</span><i></i></button>
+  <div class="foldbody">
 
-<div class="grid">
-  <main>
-    <section>
-      <h2>Holdings by platform</h2>
-      <table class="board">
-        <thead>
-          <tr>
-            <th style="width:128px">Holding</th>
-            <th class="barcell">Actual against target</th>
-            <th class="r">Weight</th>
-            <th class="r">Units</th>
-            <th class="r">Invested</th>
-            <th class="r">Value now</th>
-            <th class="r">Next buy</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-      <p class="sub" style="margin-top:10px">Units are yours to keep accurate; prices and the baht conversion update themselves. The hatched stretch is the gap to target — that is where next month's money goes.</p>
-      <div class="saved" id="saved"></div>
-      <div class="saved" id="syncstate" style="color:var(--pine)"></div>
-      <div style="margin-top:10px">
-        <button class="ghost" id="togglesync" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Sync across devices</button>
-        <button class="ghost" id="syncnow" style="width:auto;padding:7px 12px;font-size:13px;margin:0 0 0 8px">Sync now</button>
-        <div id="syncbox" style="display:none;margin-top:10px;max-width:520px">
-          <p class="sub" style="margin-bottom:8px">Paste these once on each device you use. They are stored in this browser only — never in the page, never in the gist.</p>
-          <input id="gistid" placeholder="Gist id" style="width:100%;font-family:inherit;font-size:13px;padding:7px;border:1px solid var(--rule);background:#fff;margin-bottom:6px">
-          <input id="gisttoken" type="password" placeholder="GitHub token with Gists read and write" style="width:100%;font-family:inherit;font-size:13px;padding:7px;border:1px solid var(--rule);background:#fff">
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="ghost" id="syncsave" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Connect and sync</button>
-            <button class="ghost" id="syncclear" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Disconnect</button>
-          </div>
+    <div class="kpis">
+      <div class="kpi"><div class="k">Portfolio value</div><div class="v num" id="value">฿0</div><div class="s num" id="pnl">฿0</div></div>
+      <div class="kpi"><div class="k">Contributed</div><div class="v num" id="basis">฿0</div><div class="s" id="kpiMonths">2 of 17 months</div></div>
+      <div class="kpi"><div class="k">Progress to ฿1M</div><div class="v num" id="kpiPct">0%</div><div class="s"><span class="track"><i id="goalfill"></i></span></div></div>
+      <div class="kpi"><div class="k">Needed each month</div><div class="v num" id="kpiNeed">฿0</div><div class="s">to actually reach ฿1M</div></div>
+    </div>
+    <div style="display:none"><span id="goalpct"></span><span id="months"></span></div>
+    <div id="pxwarn" class="warn" style="display:none"></div>
+
+    <div class="chartbox">
+      <div class="cthead">
+        <div>
+          <h3 class="ct">Money in against what it is worth now</h3>
+          <p class="cs" id="growthNote"></p>
+        </div>
+        <button class="ghost tgl" id="projtoggle">Show projection</button>
+      </div>
+      <div id="chartGrowth"></div>
+      <div class="mixdetail" id="growthDetail"></div>
+    </div>
+
+    <div class="two">
+      <div class="chartbox">
+        <h3 class="ct">Actual mix against target</h3>
+        <p class="cs">Tap or hover a block for its numbers.</p>
+        <div id="chartMix"></div>
+        <div class="mixdetail" id="mixdetail">Tap a block to see its weight, what went in, and what it is worth.</div>
+      </div>
+      <div class="chartbox">
+        <h3 class="ct">Distance from target</h3>
+        <p class="cs">Bars to the left are underweight — that is where money goes next.</p>
+        <div id="chartDrift"></div>
+      </div>
+    </div>
+
+    <div class="platforms">
+      <div class="pcard" id="card-crypto"></div>
+      <div class="pcard" id="card-stock"></div>
+    </div>
+
+    <div class="ticket" id="ticketwrap">
+      <h3>Next buy</h3>
+      <div class="when" id="nextwhen">30 September 2026 · month 3</div>
+      <label for="cash">Amount to invest</label>
+      <input type="number" id="cash" value="50000" min="1000" step="1000">
+      <div class="orders" id="orders"></div>
+      <div class="venuesplit" id="venuesplit"></div>
+      <p class="note" id="ticketnote"></p>
+      <button id="record">Record this as bought</button>
+      <button class="ghost" id="undo">Undo last contribution</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= HOLDINGS ================= -->
+<section class="fold" data-fold="holdings">
+  <button class="foldhead"><span>Holdings by platform</span><i></i></button>
+  <div class="foldbody">
+    <table class="board">
+      <thead>
+        <tr>
+          <th style="width:128px">Holding</th>
+          <th class="barcell">Share of portfolio</th>
+          <th class="r">Weight</th>
+          <th class="r">Units</th>
+          <th class="r">Invested</th>
+          <th class="r">Value now</th>
+          <th class="r">Next buy</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p class="sub" style="margin-top:10px">Units are yours to keep accurate; prices and the baht conversion update themselves.</p>
+  </div>
+</section>
+
+<!-- ================= CONTRIBUTIONS ================= -->
+<section class="fold" data-fold="contribs">
+  <button class="foldhead"><span>Every contribution, and what it bought</span><i></i></button>
+  <div class="foldbody"><div id="contribs"></div></div>
+</section>
+
+<!-- ================= RULES ================= -->
+<section class="fold" data-fold="rules">
+  <button class="foldhead"><span>De-risking triggers</span><i></i></button>
+  <div class="foldbody">
+    <div class="rung" id="r600"><span class="amt num">฿600k</span><span class="what">Move 10% of crypto into VT</span></div>
+    <div class="rung" id="r800"><span class="amt num">฿800k</span><span class="what">Move another 10%; no more leverage</span></div>
+    <div class="rung" id="r950"><span class="amt num">฿950k</span><span class="what">Shift to 60% defensive — race is run</span></div>
+    <p class="sub" style="margin-top:10px">Also standing: freeze crypto buys for eight weeks if Bitcoin sits 30% below your average cost.</p>
+  </div>
+</section>
+
+<!-- ================= DATA & SYNC ================= -->
+<section class="fold" data-fold="data">
+  <button class="foldhead"><span>Data and sync</span><i></i></button>
+  <div class="foldbody">
+    <div class="saved" id="saved"></div>
+    <div class="saved" id="syncstate" style="color:var(--pine)"></div>
+    <div style="margin-top:10px">
+      <button class="ghost" id="togglesync" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Sync across devices</button>
+      <button class="ghost" id="syncnow" style="width:auto;padding:7px 12px;font-size:13px;margin:0 0 0 8px">Sync now</button>
+      <div id="syncbox" style="display:none;margin-top:10px;max-width:520px">
+        <p class="sub" style="margin-bottom:8px">Paste these once on each device you use. They are stored in this browser only — never in the page, never in the gist.</p>
+        <input id="gistid" placeholder="Gist id" style="width:100%;font-family:inherit;font-size:13px;padding:7px;border:1px solid var(--rule);background:#fff;margin-bottom:6px">
+        <input id="gisttoken" type="password" placeholder="GitHub token with Gists read and write" style="width:100%;font-family:inherit;font-size:13px;padding:7px;border:1px solid var(--rule);background:#fff">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="ghost" id="syncsave" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Connect and sync</button>
+          <button class="ghost" id="syncclear" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Disconnect</button>
         </div>
       </div>
-      <div style="margin-top:14px">
-        <button class="ghost" id="toggleio" style="width:auto;padding:7px 12px;font-size:13px">Move data between copies</button>
-        <div id="iobox" style="display:none;margin-top:10px">
-          <p class="sub" style="margin-bottom:6px">Copy this out of one copy of the tracker and paste it into the other, then press Load.</p>
-          <textarea id="iotext" style="width:100%;height:90px;font-family:inherit;font-size:12px;padding:8px;border:1px solid var(--rule);background:#fff"></textarea>
-          <div style="display:flex;gap:8px;margin-top:6px">
-            <button class="ghost" id="ioload" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Load pasted data</button>
-          </div>
+    </div>
+    <div style="margin-top:14px">
+      <button class="ghost" id="toggleio" style="width:auto;padding:7px 12px;font-size:13px">Move data between copies</button>
+      <div id="iobox" style="display:none;margin-top:10px">
+        <p class="sub" style="margin-bottom:6px">Copy this out of one copy of the tracker and paste it into the other, then press Load.</p>
+        <textarea id="iotext" style="width:100%;height:90px;font-family:inherit;font-size:12px;padding:8px;border:1px solid var(--rule);background:#fff"></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="ghost" id="ioload" style="width:auto;padding:7px 12px;font-size:13px;margin:0">Load pasted data</button>
         </div>
       </div>
-    </section>
-
-    <section>
-      <h2>Every contribution, and what it bought</h2>
-      <div id="contribs"></div>
-    </section>
-  </main>
-
-  <aside>
-    <section>
-      <div class="rail">
-        <div class="cap">Portfolio value</div>
-        <div class="bignum num" id="value">฿0</div>
-        <div class="cap num" id="basis">฿0 contributed</div>
-        <div class="track"><i id="goalfill" style="width:0%"></i></div>
-        <div class="marks"><span id="goalpct">0%</span><span>฿1,000,000</span></div>
-        <div class="split">
-          <div><div class="k">Gain / loss</div><div class="v num" id="pnl">฿0</div></div>
-          <div><div class="k">Contributions</div><div class="v num" id="months">2 of 17</div></div>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="ticket">
-        <h3>Next buy</h3>
-        <div class="when">30 September 2026 · month 3</div>
-        <label for="cash">Amount to invest</label>
-        <input type="number" id="cash" value="30000" min="1000" step="1000">
-        <div class="orders" id="orders"></div>
-        <div class="venuesplit" id="venuesplit"></div>
-        <p class="note" id="ticketnote"></p>
-        <button id="record">Record this as bought</button>
-        <button class="ghost" id="undo">Undo last contribution</button>
-      </div>
-    </section>
-
-    <section>
-      <h2>De-risking triggers</h2>
-      <div class="rung" id="r600"><span class="amt num">฿600k</span><span class="what">Move 10% of crypto into VT</span></div>
-      <div class="rung" id="r800"><span class="amt num">฿800k</span><span class="what">Move another 10%; no more leverage</span></div>
-      <div class="rung" id="r950"><span class="amt num">฿950k</span><span class="what">Shift to 60% defensive — race is run</span></div>
-      <p class="sub" style="margin-top:10px">Also standing: freeze crypto buys for eight weeks if Bitcoin sits 30% below your average cost.</p>
-    </section>
-  </aside>
-</div>
+    </div>
+  </div>
+</section>
 
 <p class="disclaimer">This tracks the plan; it does not predict it. At realistic returns ฿30,000 a month lands nearer ฿600,000 than ฿1,000,000 by December 2027 — raising the monthly amount closes that gap far more reliably than changing what you hold. Not financial advice.</p>
 
 </div>
-
 <script>
 const FINNHUB_KEY="daahkthr01qvosodh3sgdaahkthr01qvosodh3t0";
 
@@ -321,7 +420,12 @@ const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);
 
 function costBasis(){const c={};TARGETS.forEach(h=>c[h.t]=0);
  state.contributions.forEach(x=>{for(const q in x.buys)c[q]=(c[q]||0)+x.buys[q]});return c}
-function valueOf(t){const p=prices[t];return p?(state.units[t]||0)*p*fxRate:0}
+function hasPrice(t){return !!(prices[t]>0)}
+function valueOf(t){const p=prices[t];
+ if(p>0)return (state.units[t]||0)*p*fxRate;
+ return costBasis()[t]||0;            // no price yet: fall back to what was paid, never to zero
+}
+function missingPrices(){return TARGETS.filter(h=>!hasPrice(h.t)&&(costBasis()[h.t]||0)>0).map(h=>h.t)}
 function totalValue(){return TARGETS.reduce((a,h)=>a+valueOf(h.t),0)}
 function contribTotal(c){return sum(c.buys)}
 
@@ -387,6 +491,249 @@ async function loadState(){
 }
 function persistPrices(){state.prices=Object.assign({},prices);state.fx=fxRate}
 let pushTimer=null, pushPending=false;
+/* ---------- collapsible sections ---------- */
+function applyFolds(){
+ const ui=(state&&state.ui)||{};
+ document.querySelectorAll(".fold").forEach(f=>{
+  const k=f.dataset.fold;
+  const open = (k in ui) ? !!ui[k] : (k==="dash");
+  f.classList.toggle("open",open);
+ });
+}
+function wireFolds(){
+ document.querySelectorAll(".foldhead").forEach(b=>b.addEventListener("click",()=>{
+  const f=b.closest(".fold"); f.classList.toggle("open");
+  state.ui=state.ui||{}; state.ui[f.dataset.fold]=f.classList.contains("open");
+  save(""); if(f.dataset.fold==="dash"&&f.classList.contains("open"))renderCharts();
+ }));
+}
+
+/* ---------- projection maths ---------- */
+const PLAN_END=new Date(2027,11,31);
+function monthsLeft(){const n=new Date();
+ return Math.max(0,(PLAN_END.getFullYear()-n.getFullYear())*12+(PLAN_END.getMonth()-n.getMonth()));}
+function fv(pv,pmt,months,annual){
+ const r=Math.pow(1+annual,1/12)-1; let v=pv;
+ for(let i=0;i<months;i++){v=v*(1+r)+pmt}
+ return v;}
+function pmtNeeded(pv,target,months,annual){
+ if(months<=0)return 0;
+ const r=Math.pow(1+annual,1/12)-1;
+ const growth=Math.pow(1+r,months);
+ const annuity=r?((growth-1)/r):months;
+ return Math.max(0,(target-pv*growth)/annuity);}
+
+/* ---------- value snapshots (real history builds as you use it) ---------- */
+function snapshot(){
+ const v=totalValue(); if(!v)return;
+ state.snapshots=state.snapshots||[];
+ const key=new Date().toISOString().slice(0,10);
+ const last=state.snapshots[state.snapshots.length-1];
+ if(last&&last.d===key){last.v=v}else{state.snapshots.push({d:key,v})}
+ if(state.snapshots.length>500)state.snapshots=state.snapshots.slice(-500);
+}
+
+/* ---------- SVG helpers ---------- */
+const SVGNS="http://www.w3.org/2000/svg";
+function svgEl(w,h){return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">`}
+function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+
+function parseDay(str,fallbackIdx){
+ const m=String(str).match(/(\d{1,2})\s+([A-Za-z]{3})\w*\s+(\d{4})/);
+ const MM={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+ if(m&&MM[m[2].toLowerCase()]!==undefined)return new Date(+m[3],MM[m[2].toLowerCase()],+m[1],12).getTime();
+ const d=Date.parse(str); return isNaN(d)?Date.now()-(9-fallbackIdx)*864e5:d;
+}
+function niceScale(max,ticks){
+ ticks=ticks||5;
+ const raw=max/ticks, p=Math.pow(10,Math.floor(Math.log10(raw)||0));
+ let step=10*p;
+ for(const c of [1,1.5,2,2.5,3,4,5,6,8,10]){if(raw<=c*p){step=c*p;break}}
+ return {step:step, max:step*ticks, ticks:ticks};
+}
+function renderGrowth(){
+ const el=$("chartGrowth"); if(!el)return;
+ const showProj=!!(state.ui&&state.ui.proj);
+ const narrow=window.innerWidth<760;
+ const W=narrow?390:760, H=narrow?300:320, L=narrow?46:58, R=narrow?12:16, T=18, B=narrow?46:50;
+ const planned=Math.max(0,+($("cash")?$("cash").value:50000)||50000);
+ const basis=costBasis();
+
+ // x axis is contribution number — how the plan is actually lived, one buy a month
+ const cs=(state.contributions||[]);
+ const done=cs.length;
+ const N=showProj?17:Math.max(done,2);
+ const bars=[];
+ let run=0;
+ for(let i=0;i<N;i++){
+  const c=cs[i];
+  const amt=c?sum(c.buys):planned;
+  run+=amt;
+  bars.push({n:i+1, amt, cum:run, future:!c, date:c?c.date:"", buys:c?c.buys:null});
+ }
+ // value: known only for now; projected forward at 12% a year
+ const nowVal=totalValue();
+ const vals=[];
+ const r=Math.pow(1.12,1/12)-1;
+ let v=nowVal;
+ for(let i=0;i<N;i++){
+  if(i<done-1)vals.push(null);                 // no recorded history for earlier months
+  else if(i===done-1)vals.push(nowVal);
+  else{v=v*(1+r)+planned; vals.push(showProj?v:null)}
+ }
+ const peak=Math.max.apply(null,[].concat(bars.map(b=>b.cum),vals.filter(x=>x!=null),showProj?[1000000]:[]))||1000;
+ const sc=niceScale(peak*1.05,5), maxY=sc.max;
+ const bw=(W-L-R)/N;
+ const x=i=>L+bw*i+bw*0.5;
+ const y=val=>T+(H-T-B)*(1-val/maxY);
+
+ let g="";
+ for(let i=0;i<=sc.ticks;i++){const val=sc.step*i;
+  g+=`<line x1="${L}" y1="${y(val)}" x2="${W-R}" y2="${y(val)}" stroke="#C3C9C3"/>
+      <text x="${L-6}" y="${y(val)+4}" text-anchor="end" font-size="${narrow?10:11}" fill="#5C6660">${val>=1e6?"฿"+(val/1e6).toFixed(2).replace(/\.?0+$/,"")+"m":"฿"+Math.round(val/1000)+"k"}</text>`}
+ if(showProj&&maxY>=1000000)
+  g+=`<line x1="${L}" y1="${y(1000000)}" x2="${W-R}" y2="${y(1000000)}" stroke="#8C3B4A" stroke-width="1.5" stroke-dasharray="2 3"/>
+      <text x="${W-R}" y="${y(1000000)-6}" text-anchor="end" font-size="11" fill="#8C3B4A">฿1,000,000 goal</text>`;
+
+ // cumulative money-in bars
+ let rects="";
+ bars.forEach((b,i)=>{
+  const w=Math.min(bw*0.68, narrow?42:74);          // keep bars sane when there are only a couple
+  const bx=L+bw*i+(bw-w)/2, top=y(b.cum), h=(H-B)-top;
+  rects+=`<rect class="mbar" x="${bx.toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}"
+     fill="#37504A" opacity="${b.future?0.28:1}" data-i="${i}" style="cursor:pointer"/>`;
+ });
+
+ // value line only across months where a value is known
+ const pts=[]; vals.forEach((val,i)=>{if(val!=null)pts.push({i,val})});
+ const solid=pts.filter(p=>p.i<=done-1), fut=pts.filter(p=>p.i>=done-1);
+ const line=a=>a.map((p,k)=>`${k?"L":"M"}${x(p.i).toFixed(1)},${y(p.val).toFixed(1)}`).join("");
+ let vline="";
+ if(solid.length>1)vline+=`<path d="${line(solid)}" fill="none" stroke="#A8641C" stroke-width="3"/>`;
+ if(showProj&&fut.length>1)vline+=`<path d="${line(fut)}" fill="none" stroke="#A8641C" stroke-width="2.5" stroke-dasharray="5 4"/>`;
+ // a wide marker across the bar, not a small dot — this is the number that matters
+ const bwv=Math.min(bw*0.68, narrow?42:74);
+ pts.forEach(p=>{
+  const cur=(p.i===done-1);
+  vline+=`<rect x="${(x(p.i)-bwv/2-5).toFixed(1)}" y="${(y(p.val)-(cur?2.5:1.5)).toFixed(1)}"
+            width="${(bwv+10).toFixed(1)}" height="${cur?5:3}" fill="#A8641C"/>`;
+  if(cur&&N<=6)vline+=`<text x="${x(p.i)}" y="${(y(p.val)-13).toFixed(1)}" text-anchor="middle"
+            font-size="${narrow?11:12}" font-weight="700" fill="#A8641C">worth ${baht(p.val)}</text>`;
+ });
+ // and label the latest bar's total put in
+ // every month actually made gets its running total, in the same place: inside the bar, at its foot
+ const dense=N>6;      // too many bars to label without collisions — tap gives the numbers instead
+ bars.forEach((b,i)=>{
+  if(b.future||dense)return;
+  const top=y(b.cum), h=(H-B)-top;
+  if(h>30)
+   vline+=`<text x="${x(i)}" y="${(H-B-10).toFixed(1)}" text-anchor="middle"
+        font-size="${narrow?10:11}" font-weight="600" fill="#E4E7E4">${baht(b.cum)}</text>`;
+  else
+   vline+=`<text x="${x(i)}" y="${(top-7).toFixed(1)}" text-anchor="middle"
+        font-size="${narrow?10:11}" font-weight="600" fill="#37504A">${baht(b.cum)}</text>`;
+ });
+
+ // labels: M number, and the date for months already made
+ let lab="";
+ bars.forEach((b,i)=>{
+  const every=narrow?(N>6?3:1):(N>10?2:1);
+  if(i%every!==0&&i!==N-1&&i!==done-1)return;
+  lab+=`<text x="${x(i)}" y="${H-B+17}" text-anchor="middle" font-size="${narrow?10:11}" font-weight="600" fill="#18211D">M${b.n}</text>`;
+  if(b.date&&!narrow)lab+=`<text x="${x(i)}" y="${H-B+30}" text-anchor="middle" font-size="10" fill="#5C6660">${esc(b.date.replace(/ 20\d\d$/,""))}</text>`;
+ });
+
+ el.innerHTML=svgEl(W,H)+g+rects+vline+lab+`</svg>`
+  +`<div class="lgd"><span><u style="background:#37504A;height:10px"></u>Money in, running total</span>
+     <span><u style="background:#A8641C"></u>What it is worth</span>`
+  +(showProj?`<span><u style="background:#8C3B4A"></u>฿1M goal</span><span>faded bars and dashes are the plan ahead</span>`:``)
+  +`</div>`;
+
+ // click a bar for its detail — no floating tooltips to collide with anything
+ el.querySelectorAll("rect.mbar").forEach(rc=>{
+  const show=()=>{
+   const b=bars[+rc.dataset.i];
+   const val=vals[+rc.dataset.i];
+   const what=b.buys?Object.entries(b.buys).sort((a,c)=>c[1]-a[1]).map(([t,x])=>`${t} ${baht(x)}`).join(" · "):"planned contribution";
+   $("growthDetail").innerHTML=`<b>Month ${b.n}</b>${b.date?" · "+esc(b.date):" · not yet made"} · put in <b>${baht(b.amt)}</b>`+
+     ` · running total <b>${baht(b.cum)}</b>`+(val!=null?` · worth <b>${baht(val)}</b>`:"")+`<br>${what}`;
+  };
+  rc.addEventListener("click",show); rc.addEventListener("mouseenter",show);
+ });
+
+ $("projtoggle").textContent=showProj?"Hide projection":"Show projection";
+ $("growthNote").textContent=showProj
+  ? "Bars are the running total put in, one per monthly buy; the amber line is what it is worth. Faded bars carry on at "+baht(planned)+" a month, the dashed line at 12% a year. Tap any bar for its numbers."
+  : "Bars are the running total you have put in, one per monthly buy. The line is what it is worth today.";
+ if(!$("growthDetail").innerHTML.trim())
+  $("growthDetail").textContent="Tap a bar for that month's buy.";
+}
+
+function renderMix(){
+ const el=$("chartMix"); if(!el)return;
+ const total=totalValue()||1, basis=costBasis();
+ const rows=[
+  {lbl:"Actual",vals:TARGETS.map(h=>({t:h.t,c:h.color,p:valueOf(h.t)/total*100}))},
+  {lbl:"Target",vals:TARGETS.map(h=>({t:h.t,c:h.color,p:h.pct}))}
+ ];
+ el.innerHTML=rows.map(r=>
+  `<div class="mixrow"><span class="mixlbl">${r.lbl}</span>
+    <span class="mixbar">`+
+    r.vals.filter(v=>v.p>0).map(v=>
+      `<i class="seg" style="width:${v.p}%;background:${v.c}" data-t="${v.t}" data-row="${r.lbl}" data-p="${v.p.toFixed(1)}">${v.p>7?v.t:""}</i>`
+    ).join("")+`</span></div>`).join("");
+ el.querySelectorAll(".seg").forEach(sg=>{
+  const show=()=>{
+   const t=sg.dataset.t, h=byT(t), inv=basis[t]||0, val=valueOf(t), pnl=val-inv;
+   $("mixdetail").innerHTML=`<b>${t}</b> · ${h.role} · ${VENUES[h.kind].name}<br>`+
+    `${sg.dataset.row==="Target"?"target":"actual"} weight <b>${(+sg.dataset.p).toFixed(1)}%</b> against ${h.pct}% target · `+
+    `put in <b>${baht(inv)}</b> · worth <b>${baht(val)}</b>`+
+    (hasPrice(t)?` <span class="${pnl>=0?"pos":"neg"}">(${pnl>=0?"+":"−"}${baht(Math.abs(pnl))})</span>`:` <span class="neg">(no price yet — shown at cost)</span>`);
+  };
+  sg.addEventListener("click",show); sg.addEventListener("mouseenter",show);
+ });
+}
+
+function renderDrift(){
+ const el=$("chartDrift"); if(!el)return;
+ const total=totalValue()||1;
+ const d=TARGETS.map(h=>({t:h.t,c:h.color,v:(valueOf(h.t)/total*100)-h.pct}));
+ const maxAbs=Math.max(3,...d.map(x=>Math.abs(x.v)));
+ const W=380,H=d.length*26+18,L=52,R=12,mid=L+(W-L-R)/2;
+ let out=svgEl(W,H);
+ out+=`<line x1="${mid}" y1="6" x2="${mid}" y2="${H-10}" stroke="#18211D" stroke-width="1.5"/>`;
+ d.forEach((x,i)=>{
+  const yy=10+i*26, bh=16;
+  const w=(W-L-R)/2*Math.abs(x.v)/maxAbs;
+  const bx=x.v<0?mid-w:mid;
+  out+=`<text x="${L-8}" y="${yy+12}" text-anchor="end" font-size="11.5" font-weight="600" fill="#18211D">${x.t}</text>
+        <rect x="${bx.toFixed(1)}" y="${yy}" width="${Math.max(1,w).toFixed(1)}" height="${bh}" fill="${x.c}" opacity="${x.v<0?1:.55}"/>`;
+  const lab=(x.v>0?"+":"")+x.v.toFixed(1);
+  if(w>38){ // enough room to sit inside the bar
+   out+=`<text x="${(x.v<0?bx+6:bx+w-6).toFixed(1)}" y="${yy+12}" text-anchor="${x.v<0?"start":"end"}" font-size="10.5" font-weight="600" fill="#fff">${lab}</text>`;
+  }else{
+   out+=`<text x="${(x.v<0?bx-5:bx+w+5).toFixed(1)}" y="${yy+12}" text-anchor="${x.v<0?"end":"start"}" font-size="10.5" fill="#5C6660">${lab}</text>`;
+  }
+ });
+ el.innerHTML=out+"</svg>";
+}
+
+function renderKpis(){
+ const invested=sum(costBasis()), total=totalValue();
+ const ml=monthsLeft(), planned=Math.max(0,+($("cash")?$("cash").value:50000)||50000);
+ $("kpiMonths").textContent=(state.contributions.length)+" of 17 months";
+ $("kpiPct").textContent=(total/1000000*100).toFixed(1)+"%";
+ const need=pmtNeeded(total,1000000,ml,0.12);
+ $("kpiNeed").textContent=baht(need);
+ $("kpiNeed").style.color = need>planned*1.25 ? "var(--garnet)" : "var(--pine)";
+ const miss=missingPrices(), wr=$("pxwarn");
+ if(miss.length){wr.style.display="block";
+  wr.innerHTML=`No price yet for <b>${miss.join(", ")}</b> — those are counted at what you paid, so the totals are understated rather than wrong. Enter the price in Holdings to make them live.`;
+ }else wr.style.display="none";
+}
+
+function renderCharts(){snapshot();renderKpis();renderGrowth();renderMix();renderDrift()}
+
 function stamp(ms){try{return new Date(ms).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){return "unknown time"}}
 async function pushNow(){
  if(!syncOn())return false;
@@ -521,7 +868,7 @@ function render(){
  const planTotal=plan.reduce((a,b)=>a+b.amt,0)||1;
 
  $("value").textContent=baht(total);
- $("basis").textContent=baht(invested)+" contributed";
+ $("basis").textContent=baht(invested);
  const pnl=total-invested;
  $("pnl").textContent=(pnl>=0?"+":"−")+baht(Math.abs(pnl));
  $("pnl").className="v num "+(pnl>=0?"pos":"neg");
@@ -548,14 +895,24 @@ function render(){
     <td class="hold"><span class="tick" style="background:${h.color}"></span><span class="name">${h.t}</span><br>
         <span class="role" style="margin-left:18px">${h.role}</span><br>
         <span style="margin-left:18px;font-size:12px;color:var(--graphite)">$</span><input class="pxin" type="number" step="0.01" value="${p||0}" data-px="${h.t}"></td>
-    <td class="barcell" data-label="Against target"><div class="bar">
-      <div class="fill" style="width:${Math.min(100,w/maxPct*100)}%;background:${h.color}"></div>
-      ${drift<0?`<div class="gap" style="left:${w/maxPct*100}%;width:${Math.min(100,-drift/maxPct*100)}%"></div>`:``}
-      <div class="target" style="left:${h.pct/maxPct*100}%"></div></div></td>
+    <td class="barcell" data-label="Share of portfolio">${(()=>{
+      let start=0; for(const q of TARGETS){ if(q.t===h.t)break; start+=(total?valueOf(q.t)/total*100:0); }
+      const segs=TARGETS.map(q=>{
+        const qw=total?valueOf(q.t)/total*100:0;
+        const on=q.t===h.t;
+        return `<i class="pseg" style="width:${qw}%;background:${on?q.color:"#CBD0CB"}"></i>`;
+      }).join("");
+      return `<div class="pbar">${segs}
+        <span class="ptick" style="left:${Math.min(100,start+h.pct)}%"></span></div>
+        <div class="barcap"><b style="color:${h.color}">${w.toFixed(1)}%</b> of the portfolio ·
+        ${drift<-0.4?`<b class="pos">${Math.abs(drift).toFixed(1)} under</b> the ${h.pct}% target`
+         :(drift>0.4?`<b class="neg">${drift.toFixed(1)} over</b> the ${h.pct}% target`
+         :`on its ${h.pct}% target`)}</div>`;
+     })()}</td>
     <td class="r num" data-label="Weight">${w.toFixed(1)}%<br><span class="role">${h.pct}% target</span></td>
     <td class="r" data-label="Units held"><input type="number" step="${h.kind==="crypto"?"0.00001":"0.0001"}" value="${u?u.toFixed(h.kind==="crypto"?6:4):0}" data-t="${h.t}"></td>
     <td class="r num" data-label="Invested">${baht(basis[h.t]||0)}</td>
-    <td class="r num" data-label="Value now">${baht(v)}<br><span class="role ${v-(basis[h.t]||0)>=0?'pos':'neg'}">${v?((v-(basis[h.t]||0))>=0?"+":"−")+baht(Math.abs(v-(basis[h.t]||0))):"—"}</span></td>
+    <td class="r num" data-label="Value now">${baht(v)}<br><span class="role ${hasPrice(h.t)?((v-(basis[h.t]||0))>=0?'pos':'neg'):''}">${hasPrice(h.t)?(((v-(basis[h.t]||0))>=0?"+":"−")+baht(Math.abs(v-(basis[h.t]||0)))):"at cost — no price"}</span></td>
     <td class="r num nextpct ${nb?"":"zero"}" data-label="Next buy">${nb?(nb/planTotal*100).toFixed(0)+"%":"—"}<br><span class="role">${nb?baht(nb):"nothing"}</span></td>`;
    rows.appendChild(tr);
   });
@@ -590,6 +947,7 @@ function render(){
  });
 
  drawTicket(plan,planTotal);
+ renderCharts();
 }
 
 function drawTicket(plan,planTotal){
@@ -654,6 +1012,9 @@ $("ioload").addEventListener("click",()=>{
   save("Data loaded.");render();
  }catch(e){$("saved").textContent="That text is not a valid tracker export — copy the whole box, including the braces."}
 });
+$("projtoggle").addEventListener("click",()=>{
+ state.ui=state.ui||{}; state.ui.proj=!state.ui.proj; save(""); renderCharts();
+});
 $("cash").addEventListener("input",render);
 $("refresh").addEventListener("click",refresh);
 $("viaclaude").addEventListener("click",fetchViaClaude);
@@ -682,13 +1043,15 @@ function flush(){
    headers:{Authorization:`Bearer ${SYNC.token}`,"Content-Type":"application/json"},body:blob});
  }catch(e){}
 }
+let rsz=null;
+window.addEventListener("resize",()=>{clearTimeout(rsz);rsz=setTimeout(()=>{try{renderCharts()}catch(e){}},250)});
 window.addEventListener("pagehide",flush);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush()});
 
 (async()=>{
  loadSync();
  if(!syncOn())setTimeout(()=>syncNote("Data is on this device only. Press Sync across devices to share it with your phone and laptop."),0);
- await loadState();seedUnitsFromCost();render();await refresh();
+ await loadState();seedUnitsFromCost();wireFolds();applyFolds();render();await refresh();
 })();
 </script>
 </body>
