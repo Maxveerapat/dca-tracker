@@ -363,6 +363,10 @@
   .ctip .r u.ln{height:2px;background:#EDEFEC}
   .ctip .r.t{border-top:1px solid #3C4741;margin-top:3px;padding-top:3px}
   .ctip .r.t span{color:#EDEFEC;font-weight:600}
+  .linkbtn{width:auto!important;margin:0 0 0 10px!important;padding:2px 0!important;background:none!important;border:none!important;color:var(--pine)!important;font-size:12.5px!important;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+  .linkbtn:hover{color:var(--ink)!important}
+  .linkbtn.del{color:var(--garnet)!important}
+  .hist td.acts{white-space:nowrap}
   #chartGrowth svg.hov rect.mbar{opacity:.3}
   #chartGrowth svg.hov rect.mbar.on{opacity:1}
   #chartGrowth svg.hov rect.mbar.on[data-fut="1"]{opacity:.6}
@@ -373,6 +377,14 @@
   #chartDrift svg.hov .dbar.on{opacity:1}
   .ctip .tpos{color:#9FD3BD}.ctip .tneg{color:#F0A8B3}
   #chartGrowth,#chartMix,#chartDrift{position:relative}
+  .cfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .cedit{border:1px solid var(--rule);background:var(--paper-2);padding:14px}
+  .cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:620px){.cgrid{grid-template-columns:1fr 1fr}}
+  .cgrid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--graphite)}
+  .cgrid input{width:100%!important;text-align:left!important;font-family:inherit;font-size:14px;padding:6px 7px;border:1px solid var(--rule);background:#fff;color:var(--ink)}
+  .cacts{display:flex;gap:8px}
+  .cacts button{width:auto;margin:0;padding:8px 14px;font-size:13px}
 </style>
 </head>
 <body>
@@ -592,7 +604,7 @@
     <div class="saved" id="p-saved"></div>
     <div class="histwrap">
       <table class="hist">
-        <thead><tr><th>Month</th><th>Burn</th><th>Salary</th><th>Real estate</th><th>Passive</th><th>Contributed</th><th>Portfolio at month end</th><th>Informal repaid</th></tr></thead>
+        <thead><tr><th>Month</th><th>Burn</th><th>Salary</th><th>Real estate</th><th>Passive</th><th>Contributed</th><th>Portfolio at month end</th><th>Informal repaid</th><th></th></tr></thead>
         <tbody id="p-hist"></tbody>
       </table>
     </div>
@@ -614,6 +626,8 @@
         <button class="btnline" id="q-edit">Edit OKRs</button>
         <button class="btnline" id="q-close">Close quarter</button>
         <button class="btnline" id="q-setup" hidden>Set up next quarter</button>
+        <button class="btnline" id="q-reopen" hidden>Reopen quarter</button>
+        <button class="btnline" id="q-del" hidden>Delete quarter</button>
       </div>
     </div>
     <div id="krs"></div>
@@ -1266,21 +1280,7 @@ function render(){
   prices[e.target.dataset.px]=Math.max(0,+e.target.value||0);seedUnitsFromCost();save("Price saved.");render();
  }));
 
- const cw=$("contribs");cw.innerHTML="";
- state.contributions.forEach((c,i)=>{
-  const tot=contribTotal(c);
-  const parts=Object.entries(c.buys).sort((a,b)=>b[1]-a[1]);
-  const segs=parts.map(([t,v])=>{
-   const pc=v/tot*100;
-   return `<div style="width:${pc}%;background:${byT(t).color}" title="${t} ${baht(v)}">${pc>9?t:""}</div>`}).join("");
-  const cryptoAmt=parts.filter(([t])=>byT(t).kind==="crypto").reduce((a,b)=>a+b[1],0);
-  cw.insertAdjacentHTML("beforeend",`
-   <div class="contrib">
-     <div class="chead"><span class="cwhen">Month ${i+1}<em>${c.date}</em></span><span class="camt">${baht(tot)}</span></div>
-     <div class="cbar">${segs}</div>
-     <div class="clegend">Binance ${baht(cryptoAmt)} · Dime ${baht(tot-cryptoAmt)}</div>
-   </div>`);
- });
+ if(editCI===null)renderContribs();
 
  drawTicket(plan,planTotal);
  renderCharts();
@@ -1355,23 +1355,92 @@ $("projtoggle").addEventListener("click",()=>{
 $("cash").addEventListener("input",render);
 $("refresh").addEventListener("click",refresh);
 $("viaclaude").addEventListener("click",fetchViaClaude);
+
+/* ---------- contribution history: edit and delete ---------- */
+let editCI=null;
+const isoOf=c=>{const d=new Date(parseDay(c.date,0));return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+function unitsIn(c,t){ // units a contribution bought: stored when recorded, else estimated at today's price
+ if(c.units&&typeof c.units[t]==="number")return c.units[t];
+ return prices[t]?(c.buys[t]||0)/(prices[t]*fxRate):0;
+}
+function renderContribs(){
+ const cw=$("contribs");cw.innerHTML="";
+ if(!state.contributions.length){cw.innerHTML=`<p class="sub">No contributions recorded.</p>`;return}
+ state.contributions.forEach((c,i)=>{
+  if(i===editCI){
+   cw.insertAdjacentHTML("beforeend",`
+   <div class="contrib cedit" data-ci="${i}">
+    <div class="chead"><span class="cwhen">Editing month ${i+1}</span></div>
+    <div class="cgrid">
+     <label>Date<input type="date" id="ce-date" value="${isoOf(c)}"></label>
+     ${TARGETS.map(h=>`<label><span><span class="tick" style="background:${h.color}"></span>${h.t} (฿)</span><input type="number" min="0" step="500" data-ct="${h.t}" value="${c.buys[h.t]||""}"></label>`).join("")}
+    </div>
+    <p class="sub" style="margin:8px 0 10px">Units in Holdings move in step with these amounts. Check them against Binance and Dime afterwards.</p>
+    <div class="cacts"><button class="csave" data-cact="save">Save changes</button><button class="ghost" data-cact="cancel">Cancel</button></div>
+   </div>`);
+   return;
+  }
+  const tot=contribTotal(c);
+  const parts=Object.entries(c.buys).sort((a,b)=>b[1]-a[1]);
+  const segs=parts.map(([t,v])=>{
+   const pc=tot?v/tot*100:0;
+   return `<div style="width:${pc}%;background:${byT(t).color}" title="${t} ${baht(v)}">${pc>9?t:""}</div>`}).join("");
+  const cryptoAmt=parts.filter(([t])=>byT(t).kind==="crypto").reduce((a,b)=>a+b[1],0);
+  cw.insertAdjacentHTML("beforeend",`
+   <div class="contrib" data-ci="${i}">
+     <div class="chead"><span class="cwhen">Month ${i+1}<em>${esc(c.date)}</em></span><span class="camt">${baht(tot)}</span></div>
+     <div class="cbar">${segs}</div>
+     <div class="clegend cfoot"><span>Binance ${baht(cryptoAmt)} · Dime ${baht(tot-cryptoAmt)}</span>
+       <span><button class="linkbtn" data-cact="edit">Edit</button><button class="linkbtn del" data-cact="del">Delete</button></span></div>
+   </div>`);
+ });
+}
+function deleteContribution(i){
+ const c=state.contributions[i]; if(!c)return;
+ for(const t in c.buys){state.units[t]=Math.max(0,(state.units[t]||0)-unitsIn(c,t))}
+ state.contributions.splice(i,1);
+}
+$("contribs").addEventListener("click",e=>{
+ const b=e.target.closest("button[data-cact]"); if(!b)return;
+ const i=+b.closest("[data-ci]").dataset.ci, act=b.dataset.cact;
+ if(act==="edit"){editCI=i;renderContribs();return}
+ if(act==="cancel"){editCI=null;renderContribs();return}
+ if(act==="del"){
+  if(b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent="Tap again to delete";setTimeout(()=>{b.dataset.confirm="";b.textContent="Delete"},3000);return}
+  editCI=null; deleteContribution(i); save("Contribution deleted."); render(); return;
+ }
+ if(act==="save"){
+  const c=state.contributions[i], box=b.closest(".cedit");
+  const iso=box.querySelector("#ce-date").value;
+  const nb={}; box.querySelectorAll("input[data-ct]").forEach(inp=>{const v=Math.max(0,+inp.value||0);if(v)nb[inp.dataset.ct]=v});
+  if(!Object.keys(nb).length){b.textContent="Enter at least one amount";setTimeout(()=>b.textContent="Save changes",2500);return}
+  const nu={};
+  TARGETS.forEach(h=>{const t=h.t, oldA=c.buys[t]||0, newA=nb[t]||0, oldU=oldA?unitsIn(c,t):0;
+   const newU=newA?(oldA&&oldU?oldU*newA/oldA:(prices[t]?newA/(prices[t]*fxRate):0)):0;
+   if(newA)nu[t]=newU; state.units[t]=Math.max(0,(state.units[t]||0)+newU-oldU)});
+  c.buys=nb; c.units=nu;
+  if(iso){const[y,m,d]=iso.split("-").map(Number);c.date=new Date(y,m-1,d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}
+  state.contributions.sort((a,b2)=>parseDay(a.date,0)-parseDay(b2.date,0));
+  editCI=null; save("Contribution updated."); render();
+ }
+});
 $("record").addEventListener("click",()=>{
  const cash=Math.max(0,+$("cash").value||0);if(!cash)return;
  const plan=planBuy(cash),buys={};
- plan.forEach(o=>{buys[o.t]=o.amt;if(prices[o.t])state.units[o.t]=(state.units[o.t]||0)+o.amt/(prices[o.t]*fxRate)});
+ const units={};
+ plan.forEach(o=>{buys[o.t]=o.amt;if(prices[o.t]){units[o.t]=o.amt/(prices[o.t]*fxRate);state.units[o.t]=(state.units[o.t]||0)+units[o.t]}});
  const date=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
- state.contributions.push({date,buys});
+ state.contributions.push({date,buys,units});
  save("Contribution recorded at today's prices.");render();
 });
 $("undo").addEventListener("click",()=>{
- if(state.contributions.length<=2)return;
- const last=state.contributions.pop();
- for(const q in last.buys){if(prices[q])state.units[q]=Math.max(0,(state.units[q]||0)-last.buys[q]/(prices[q]*fxRate))}
+ if(!state.contributions.length)return;
+ editCI=null; deleteContribution(state.contributions.length-1);
  save("Last contribution removed.");render();
 });
 
 /* ================= LONG TERM PLANNER ================= */
-const EF_TARGET=1290000, EF_BY="2027-12", PLAN_START="2026-08", SALARY=76000, RE_FLOOR=75000;
+const EF_TARGET=1290000, EF_BY="2027-12", PLAN_START="2026-09", SALARY=76000, RE_FLOOR=75000;
 const LIVING=30500, INSURANCE=4600;
 const LENDERS=[["patch","Patch",100000],["mum","Mum",50000],["nop","Nop",30000]];
 const INFORMAL_TOTAL=LENDERS.reduce((a,l)=>a+l[2],0);
@@ -1431,7 +1500,7 @@ const SEED_INITS=[
 function P(){
  if(!state.plan)state.plan={};
  const p=state.plan;
- p.months=p.months||{}; p.initiatives=p.initiatives||JSON.parse(JSON.stringify(SEED_INITS));
+ p.months=p.months||{}; Object.keys(p.months).forEach(m=>{if(m<PLAN_START)delete p.months[m]}); p.initiatives=p.initiatives||JSON.parse(JSON.stringify(SEED_INITS));
  if(!p.okr){p.okr={"2026-Q4":JSON.parse(JSON.stringify(Q4_2026))}}
  delete p.kr;
  return p;
@@ -1551,11 +1620,12 @@ function renderKpis(){
 }
 function renderCharts2(){
  const p=P(), cms=closedMonths();
- stackChart("ch-income","lg-income","dt-income",{months:cms.length?cms:[addM(nowM(),-1)],
+ if(!cms.length){$("ch-income").innerHTML=`<p class="cs" style="padding:40px 0;text-align:center">The first bar appears once September is checked in on 1 October.</p>`;$("lg-income").innerHTML=""}
+ else stackChart("ch-income","lg-income","dt-income",{months:cms,
   series:[{name:"Salary",color:COL.salary,vals:cms.map(()=>SALARY)},
           {name:"Real estate",color:COL.re,vals:cms.map(m=>+(p.months[m]||{}).re||0)},
           {name:"Passive",color:COL.pas,vals:cms.map(m=>+(p.months[m]||{}).pas||0)}],
-  line:{name:"Burn",vals:(cms.length?cms:[addM(nowM(),-1)]).map(burnFor)}});
+  line:{name:"Burn",vals:cms.map(burnFor)}});
  const bm=range(nowM(),"2028-12");
  stackChart("ch-burn","lg-burn","dt-burn",{months:bm,
   series:[{name:"Living",color:COL.living,vals:bm.map(m=>LIVING)},
@@ -1596,8 +1666,9 @@ function fillMonth(){
 function renderHist(){
  const p=P(),ms=checkinMonths(),c=v=>typeof v==="number"?baht(v):"—";
  $("p-hist").innerHTML=ms.length?ms.map(m=>{const r=p.months[m]||{},pv=portfolioAt(m);
-  return `<tr><td>${mShort(m)}</td><td>${baht(burnFor(m))}</td><td>${baht(SALARY)}</td><td class="${typeof r.re==="number"&&r.re<RE_FLOOR?"low":""}">${c(r.re)}</td><td>${c(r.pas)}</td><td>${baht(contributedIn(m))}</td><td>${pv==null?"—":baht(pv)}</td><td>${r.rep?baht(repaidIn(m)):"—"}</td></tr>`}).join("")
- :`<tr><td colspan="8">No finished months yet.</td></tr>`;
+  return `<tr><td>${mShort(m)}</td><td>${baht(burnFor(m))}</td><td>${baht(SALARY)}</td><td class="${typeof r.re==="number"&&r.re<RE_FLOOR?"low":""}">${c(r.re)}</td><td>${c(r.pas)}</td><td>${baht(contributedIn(m))}</td><td>${pv==null?"—":baht(pv)}</td><td>${r.rep?baht(repaidIn(m)):"—"}</td>
+   <td class="acts">${r.savedAt?`<button class="linkbtn" data-hact="edit" data-m="${m}">Edit</button><button class="linkbtn del" data-hact="del" data-m="${m}">Delete</button>`:`<button class="linkbtn" data-hact="edit" data-m="${m}">Add</button>`}</td></tr>`}).join("")
+ :`<tr><td colspan="9">No finished months yet.</td></tr>`;
 }
 function renderOkr(){
  const p=P(), cq=qOf(nowM());
@@ -1611,6 +1682,8 @@ function renderOkr(){
  chip("q-chip",o.closed?"good":(qEnded(viewQ)?"warn":"idle"),o.closed?`Closed · ${done} of ${all.length} done`:(qEnded(viewQ)?`Ended · review and close`:`${done} of ${all.length} done`));
  $("q-edit").hidden=o.closed; $("q-edit").textContent=editQ?"Done editing":"Edit OKRs";
  $("q-close").hidden=o.closed||editQ||nowM()<qMonths(viewQ)[2];
+ $("q-reopen").hidden=!o.closed;
+ $("q-del").hidden=editQ||keys.length<=1;
  $("q-setup").hidden=!(o.closed&&!p.okr[qNext(viewQ)]);
  $("q-setup").textContent=`Set up ${qLabel(qNext(viewQ))}`;
  const box=$("krs");
@@ -1741,6 +1814,14 @@ function wirePlanner(){
   const o=P().okr[viewQ]; o.closed=true; o.closedAt=Date.now();
   o.final=o.objs.flatMap(x=>x.krs).map(k=>({id:k.id,done:krDone(viewQ,k),progress:(krProgress(viewQ,k)||{}).txt||null}));
   save("Quarter closed."); renderOkr()});
+ $("q-reopen").addEventListener("click",()=>{const o=P().okr[viewQ];o.closed=false;delete o.closedAt;delete o.final;save("Quarter reopened.");renderOkr()});
+ $("q-del").addEventListener("click",e=>{const b=e.currentTarget;
+  if(b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent="Tap again to delete";setTimeout(()=>{b.dataset.confirm="";b.textContent="Delete quarter"},3000);return}
+  const p=P();delete p.okr[viewQ];viewQ=null;editQ=false;b.dataset.confirm="";b.textContent="Delete quarter";save("Quarter deleted.");renderOkr()});
+ $("p-hist").addEventListener("click",async e=>{const b=e.target.closest("button[data-hact]");if(!b)return;const m=b.dataset.m;
+  if(b.dataset.hact==="edit"){$("p-m").value=m;fillMonth();$("p-form").scrollIntoView({behavior:"smooth",block:"center"});$("p-in-re").focus();return}
+  if(b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent="Tap again";setTimeout(()=>{b.dataset.confirm="";b.textContent="Delete"},3000);return}
+  delete P().months[m]; if($("p-m").value===m)fillMonth(); renderPlanner(); render(); await saveAndSync("p-saved",`${mLabel(m)} deleted.`)});
  $("q-setup").addEventListener("click",()=>{
   const p=P(), from=p.okr[viewQ], nq=qNext(viewQ); let n=0;
   const objs=from.objs.map(ob=>({id:"o"+Date.now()+(n++),title:ob.title,krs:ob.krs.filter(k=>!krDone(viewQ,k)).map(k=>({...k,id:"k"+Date.now()+(n++)}))})).filter(ob=>ob.krs.length);
