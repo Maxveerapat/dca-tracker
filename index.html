@@ -389,6 +389,9 @@
   .cksum i{font-style:normal;color:var(--graphite)}
   .cksum .pos b{color:var(--pine)} .cksum .neg b{color:var(--garnet)}
   .ck .savebtn{align-self:flex-start;width:auto!important;padding:10px 22px!important}
+  input.money{text-align:right;font-variant-numeric:tabular-nums}
+  input.money.bad{border-color:var(--garnet)!important;background:#F7ECEE!important}
+  .ckcard input.money{font-family:inherit;font-size:15px;padding:8px 9px;border:1px solid var(--rule);background:#fff;color:var(--ink);width:100%}
   #chartGrowth svg.hov rect.mbar{opacity:.3}
   #chartGrowth svg.hov rect.mbar.on{opacity:1}
   #chartGrowth svg.hov rect.mbar.on[data-fut="1"]{opacity:.6}
@@ -612,26 +615,26 @@
 <section class="fold" data-fold="p-check">
   <button class="foldhead"><span>Month-end check-in</span><i></i></button>
   <div class="foldbody">
-    <form id="p-form" class="ck">
+    <form id="p-form" class="ck" novalidate>
       <div class="ckhead"><label for="p-m">Month<select id="p-m"></select></label><span class="saved" id="p-saved"></span></div>
       <div class="ckgrid">
         <fieldset class="ckcard"><legend>Earn</legend>
-          <label for="p-in-salary"><span>Salary, after tax</span><input type="number" id="p-in-salary" min="0" step="1000" inputmode="numeric" placeholder="76,000"></label>
-          <label for="p-in-condo"><span>Condo commission</span><input type="number" id="p-in-condo" min="0" step="1000" inputmode="numeric"></label>
-          <label for="p-in-inscom"><span>Insurance commission</span><input type="number" id="p-in-inscom" min="0" step="1000" inputmode="numeric"></label>
-          <label for="p-in-pas"><span>Passive income</span><input type="number" id="p-in-pas" min="0" step="100" inputmode="numeric"></label>
+          <label for="p-in-salary"><span>Salary, after tax</span><input type="text" class="money" id="p-in-salary" inputmode="decimal" autocomplete="off" placeholder="76,000.00"></label>
+          <label for="p-in-condo"><span>Condo commission</span><input type="text" class="money" id="p-in-condo" inputmode="decimal" autocomplete="off"></label>
+          <label for="p-in-inscom"><span>Insurance commission</span><input type="text" class="money" id="p-in-inscom" inputmode="decimal" autocomplete="off"></label>
+          <label for="p-in-pas"><span>Passive income</span><input type="text" class="money" id="p-in-pas" inputmode="decimal" autocomplete="off"></label>
           <div class="cktot"><span>Total earn</span><b id="ck-earn">฿0</b></div>
         </fieldset>
         <fieldset class="ckcard"><legend>Burn</legend>
-          <label for="p-in-living"><span>Living costs</span><input type="number" id="p-in-living" min="0" step="500" inputmode="numeric" placeholder="30,500"></label>
-          <label for="p-in-prem"><span>Insurance premium</span><input type="number" id="p-in-prem" min="0" step="100" inputmode="numeric" placeholder="4,600"></label>
+          <label for="p-in-living"><span>Living costs</span><input type="text" class="money" id="p-in-living" inputmode="decimal" autocomplete="off" placeholder="30,500.00"></label>
+          <label for="p-in-prem"><span>Insurance premium</span><input type="text" class="money" id="p-in-prem" inputmode="decimal" autocomplete="off" placeholder="4,600.00"></label>
           <div class="ckfixed" id="ck-fixed"></div>
           <div class="cktot"><span>Total burn</span><b id="ck-burn">฿0</b></div>
         </fieldset>
         <fieldset class="ckcard"><legend>Informal debt repayment</legend>
-          <label for="p-in-patch"><span>Patch <small id="ck-left-patch"></small></span><input type="number" id="p-in-patch" min="0" step="1000" inputmode="numeric"></label>
-          <label for="p-in-mum"><span>Mum <small id="ck-left-mum"></small></span><input type="number" id="p-in-mum" min="0" step="1000" inputmode="numeric"></label>
-          <label for="p-in-nop"><span>Nop <small id="ck-left-nop"></small></span><input type="number" id="p-in-nop" min="0" step="1000" inputmode="numeric"></label>
+          <label for="p-in-patch"><span>Patch <small id="ck-left-patch"></small></span><input type="text" class="money" id="p-in-patch" inputmode="decimal" autocomplete="off"></label>
+          <label for="p-in-mum"><span>Mum <small id="ck-left-mum"></small></span><input type="text" class="money" id="p-in-mum" inputmode="decimal" autocomplete="off"></label>
+          <label for="p-in-nop"><span>Nop <small id="ck-left-nop"></small></span><input type="text" class="money" id="p-in-nop" inputmode="decimal" autocomplete="off"></label>
           <div class="cktot"><span>Total repaid</span><b id="ck-rep">฿0</b></div>
         </fieldset>
       </div>
@@ -1409,7 +1412,7 @@ function renderContribs(){
     <div class="chead"><span class="cwhen">Editing month ${i+1}</span></div>
     <div class="cgrid">
      <label>Date<input type="date" id="ce-date" value="${isoOf(c)}"></label>
-     ${TARGETS.map(h=>`<label><span><span class="tick" style="background:${h.color}"></span>${h.t} (฿)</span><input type="number" min="0" step="500" data-ct="${h.t}" value="${c.buys[h.t]||""}"></label>`).join("")}
+     ${TARGETS.map(h=>`<label><span><span class="tick" style="background:${h.color}"></span>${h.t} (฿)</span><input type="text" class="money" inputmode="decimal" data-ct="${h.t}" value="${moneyFmt(c.buys[h.t])}"></label>`).join("")}
     </div>
     <p class="sub" style="margin:8px 0 10px">Units in Holdings move in step with these amounts. Check them against Binance and Dime afterwards.</p>
     <div class="cacts"><button class="csave" data-cact="save">Save changes</button><button class="ghost" data-cact="cancel">Cancel</button></div>
@@ -1448,7 +1451,7 @@ $("contribs").addEventListener("click",e=>{
  if(act==="save"){
   const c=state.contributions[i], box=b.closest(".cedit");
   const iso=box.querySelector("#ce-date").value;
-  const nb={}; box.querySelectorAll("input[data-ct]").forEach(inp=>{const v=Math.max(0,+inp.value||0);if(v)nb[inp.dataset.ct]=v});
+  const nb={}; box.querySelectorAll("input[data-ct]").forEach(inp=>{const v=parseMoney(inp.value);if(v&&!isNaN(v))nb[inp.dataset.ct]=v});
   if(!Object.keys(nb).length){b.textContent="Enter at least one amount";setTimeout(()=>b.textContent="Save changes",2500);return}
   const nu={};
   TARGETS.forEach(h=>{const t=h.t, oldA=c.buys[t]||0, newA=nb[t]||0, oldU=oldA?unitsIn(c,t):0;
@@ -1482,6 +1485,9 @@ const LENDERS=[["patch","Patch",100000],["mum","Mum",50000],["nop","Nop",30000]]
 const INFORMAL_TOTAL=LENDERS.reduce((a,l)=>a+l[2],0);
 const COL={salary:"#8C968F",condo:"#2C5F7A",inscom:"#7FA3B8",pas:"#2F5D4E",living:"#8C968F",ins:"#B9C0BA",house:"#37504A",tesla:"#6B5B8E",mumloan:"#A8641C",carrefi:"#7A6A2E",informal:"#8C3B4A"};
 
+const moneyFmt=v=>(typeof v==="number"&&isFinite(v))?v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):"";
+const bahtd=v=>(v<0?"−":"")+"฿"+moneyFmt(Math.abs(v));
+function parseMoney(str){const t=String(str).replace(/[,\s฿]/g,"");if(t==="")return undefined;const v=+t;return isFinite(v)?Math.round(Math.max(0,v)*100)/100:NaN}
 const ym=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
 const nowM=()=>ym(new Date());
 function addM(m,n){let[y,mo]=m.split("-").map(Number);mo+=n;y+=Math.floor((mo-1)/12);mo=((mo-1)%12+12)%12+1;return `${y}-${String(mo).padStart(2,"0")}`}
@@ -1685,7 +1691,7 @@ function renderCharts2(){
 function renderDebts(){
  const m=nowM(), L=loans();
  const rows=[
-  ["House loan","Formal",`${baht(5000)} <span class="role">your share of ฿46,100</span>`,`${baht(houseBal(m))}<span class="role">estimated at ${(houseRate()*1200).toFixed(1)}% a year · ${mDiff(m,HOUSE_END)} payments left</span><span class="role">statement: <input type="number" class="balin" data-loan="house" value="${Math.round(L.house.bal)}" aria-label="House loan balance from statement"> ${mShort(L.house.asOf)}</span>`,"Mar 2040"],
+  ["House loan","Formal",`${baht(5000)} <span class="role">your share of ฿46,100</span>`,`${baht(houseBal(m))}<span class="role">estimated at ${(houseRate()*1200).toFixed(1)}% a year · ${mDiff(m,HOUSE_END)} payments left</span><span class="role">statement: <input type="text" class="balin money" inputmode="decimal" data-loan="house" value="${moneyFmt(L.house.bal)}" aria-label="House loan balance from statement"> ${mShort(L.house.asOf)}</span>`,"Mar 2040"],
   ["Tesla","Formal",baht(13495),`${baht(teslaBal(m))}<span class="role">${48-teslaPaid(m)} of 48 instalments left</span>`,"Mar 2030"],
   ["Car refinance","Formal",`${baht(16346)} <span class="role">from Feb 2027</span>`,`${baht(carBal(m))}<span class="role">${84-carPaid(m)} of 84 instalments left${m<"2027-02"?" · mum pays until Jan":""}</span>`,"Mar 2031"],
   ["Mum's loan","Formal",`${baht(5000)} <span class="role">at month end</span>`,baht(mumLoanBal(m)),"Jun 2027"],
@@ -1696,7 +1702,7 @@ function renderDebts(){
 }
 function checkinMonths(){return range(PLAN_START,nowM()).reverse()}
 const CK_FIELDS=[["salary","p-in-salary"],["condo","p-in-condo"],["inscom","p-in-inscom"],["pas","p-in-pas"],["living","p-in-living"],["prem","p-in-prem"]];
-function ckVal(id,fallback){const v=$(id).value.trim();return v===""?fallback:Math.max(0,+v||0)}
+function ckVal(id,fallback){const v=parseMoney($(id).value);return v===undefined?fallback:(isNaN(v)?0:v)}
 function ckTotals(){
  const m=$("p-m").value; if(!m)return;
  const earn=["p-in-salary","p-in-condo","p-in-inscom","p-in-pas"].reduce((a,id)=>a+ckVal(id,0),0);
@@ -1704,18 +1710,18 @@ function ckTotals(){
  const sched=[["House, your share",d.house],["Tesla",d.tesla],["Mum's loan",d.mumloan],["Car refinance",d.carrefi]].filter(x=>x[1]>0);
  const burn=liv+prem+sched.reduce((a,x)=>a+x[1],0);
  const rep=LENDERS.reduce((a,[k])=>a+ckVal("p-in-"+k,0),0), inv=contributedIn(m), left=earn-burn-rep-inv;
- $("ck-fixed").innerHTML=`<div class="cksub">Loan instalments, scheduled</div>`+sched.map(([n,v])=>`<div class="ckrow"><span>${n}</span><b>${baht(v)}</b></div>`).join("");
- $("ck-earn").textContent=baht(earn); $("ck-burn").textContent=baht(burn); $("ck-rep").textContent=baht(rep);
- LENDERS.forEach(([k,,amt])=>{const before=Math.max(0,amt-repaidTo(k)+(+((mrec(m).rep||{})[k])||0));$("ck-left-"+k).textContent=`· ${baht(before)} owed at start of month`});
- $("ck-sum").innerHTML=`<span>Earn <b>${baht(earn)}</b></span><i>−</i><span>Burn <b>${baht(burn)}</b></span><i>−</i><span>Debt repaid <b>${baht(rep)}</b></span><i>−</i><span>Invested <b>${baht(inv)}</b></span><i>=</i><span class="${left>=0?"pos":"neg"}">Left over <b>${left>=0?"":"−"}${baht(Math.abs(left))}</b></span>`;
+ $("ck-fixed").innerHTML=`<div class="cksub">Loan instalments, scheduled</div>`+sched.map(([n,v])=>`<div class="ckrow"><span>${n}</span><b>${bahtd(v)}</b></div>`).join("");
+ $("ck-earn").textContent=bahtd(earn); $("ck-burn").textContent=bahtd(burn); $("ck-rep").textContent=bahtd(rep);
+ LENDERS.forEach(([k,,amt])=>{const before=Math.max(0,amt-repaidTo(k)+(+((mrec(m).rep||{})[k])||0));$("ck-left-"+k).textContent=`· ${bahtd(before)} owed at start of month`});
+ $("ck-sum").innerHTML=`<span>Earn <b>${bahtd(earn)}</b></span><i>−</i><span>Burn <b>${bahtd(burn)}</b></span><i>−</i><span>Debt repaid <b>${bahtd(rep)}</b></span><i>−</i><span>Invested <b>${bahtd(inv)}</b></span><i>=</i><span class="${left>=0?"pos":"neg"}">Left over <b>${bahtd(left)}</b></span>`;
 }
 function fillMonth(){
  const m=$("p-m").value;
  $("p-form").querySelectorAll("input,button[type=submit]").forEach(x=>x.disabled=!m);
  if(!m){$("p-saved").textContent="No months to check in yet.";$("ck-sum").innerHTML="";$("ck-fixed").innerHTML="";return}
  const r=mrec(m),rep=r.rep||{};
- CK_FIELDS.forEach(([k,id])=>{$(id).value=typeof r[k]==="number"?r[k]:""});
- LENDERS.forEach(([k])=>{$("p-in-"+k).value=typeof rep[k]==="number"?rep[k]:""});
+ CK_FIELDS.forEach(([k,id])=>{$(id).value=moneyFmt(r[k])});
+ LENDERS.forEach(([k])=>{$("p-in-"+k).value=moneyFmt(rep[k])});
  $("p-saved").textContent=r.savedAt?`Last saved ${stamp(r.savedAt)}`:"Not saved yet";
  ckTotals();
 }
@@ -1723,7 +1729,7 @@ function renderHist(){
  const p=P(),ms=checkinMonths();
  $("p-hist").innerHTML=ms.length?ms.map(m=>{const r=p.months[m]||{},pv=portfolioAt(m),ok=!!r.savedAt;
   const earn=earnOf(m),burn=burnFor(m),rep=repaidIn(m),inv=contributedIn(m),left=earn-burn-rep-inv;
-  return `<tr><td>${mShort(m)}</td><td>${ok?baht(earn):"—"}</td><td>${baht(burn)}</td><td>${ok?baht(rep):"—"}</td><td>${baht(inv)}</td><td class="${ok&&left<0?"low":""}">${ok?(left<0?"−":"")+baht(Math.abs(left)):"—"}</td><td>${pv==null?"—":baht(pv)}</td>
+  return `<tr><td>${mShort(m)}</td><td>${ok?bahtd(earn):"—"}</td><td>${bahtd(burn)}</td><td>${ok?bahtd(rep):"—"}</td><td>${bahtd(inv)}</td><td class="${ok&&left<0?"low":""}">${ok?bahtd(left):"—"}</td><td>${pv==null?"—":bahtd(pv)}</td>
    <td class="acts">${ok?`<button class="linkbtn" data-hact="edit" data-m="${m}">Edit</button><button class="linkbtn del" data-hact="del" data-m="${m}">Delete</button>`:`<button class="linkbtn" data-hact="edit" data-m="${m}">Add</button>`}</td></tr>`}).join("")
  :`<tr><td colspan="8">No finished months yet.</td></tr>`;
 }
@@ -1748,7 +1754,7 @@ function renderOkr(){
   box.innerHTML=o.objs.map((ob,oi)=>`<div class="krobj edit"><label class="sr" for="ob-${oi}">Objective</label><input type="text" id="ob-${oi}" data-ob="${oi}" data-f="title" value="${esc(ob.title).replace(/"/g,"&quot;")}"><button class="iconbtn" data-act="delobj" data-ob="${oi}" aria-label="Remove objective">×</button></div>`+
    ob.krs.map((kr,ki)=>`<div class="kr edit"><input type="text" data-ob="${oi}" data-kr="${ki}" data-f="text" value="${esc(kr.text).replace(/"/g,"&quot;")}" aria-label="Key result">
     <div class="kredit"><select data-ob="${oi}" data-kr="${ki}" data-f="type" aria-label="How it is measured">${KR_TYPES.map(([v,l])=>`<option value="${v}"${kr.type===v?" selected":""}>${l}</option>`).join("")}</select>
-    ${kr.type!=="manual"?`<input type="number" data-ob="${oi}" data-kr="${ki}" data-f="target" value="${kr.target||""}" aria-label="Target in baht" placeholder="฿">`:""}
+    ${kr.type!=="manual"?`<input type="text" class="money" inputmode="decimal" data-ob="${oi}" data-kr="${ki}" data-f="target" value="${moneyFmt(kr.target)}" aria-label="Target in baht" placeholder="฿">`:""}
     <button class="iconbtn" data-act="delkr" data-ob="${oi}" data-kr="${ki}" aria-label="Remove key result">×</button></div></div>`).join("")+
    `<button class="btnline addkr" data-act="addkr" data-ob="${oi}">Add key result</button>`).join("")+
    `<div style="margin-top:18px"><button class="btnline" data-act="addobj">Add objective</button></div>`;
@@ -1769,9 +1775,9 @@ function renderInits(){
    <span class="rank">${i+1}</span>
    <div class="name"><label class="sr" for="in-n-${i}">Name</label><input type="text" id="in-n-${i}" data-f="name" value="${esc(it.name).replace(/"/g,"&quot;")}"></div>
    <div class="f" data-label="Stage"><select data-f="stage" aria-label="Stage">${STAGES.map(([v,l])=>`<option value="${v}"${it.stage===v?" selected":""}>${l}</option>`).join("")}</select></div>
-   <div class="f" data-label="Est. ฿ / month"><input type="number" data-f="est" min="0" step="1000" value="${val(it.est)}" aria-label="Estimated baht per month"></div>
-   <div class="f" data-label="Start-up ฿"><input type="number" data-f="capital" min="0" step="1000" value="${val(it.capital)}" aria-label="Start-up cost"></div>
-   <div class="f" data-label="Hours / week"><input type="number" data-f="hours" min="0" step="1" value="${val(it.hours)}" aria-label="Hours per week"></div>
+   <div class="f" data-label="Est. ฿ / month"><input type="text" class="money" inputmode="decimal" data-f="est" value="${moneyFmt(it.est)}" aria-label="Estimated baht per month"></div>
+   <div class="f" data-label="Start-up ฿"><input type="text" class="money" inputmode="decimal" data-f="capital" value="${moneyFmt(it.capital)}" aria-label="Start-up cost"></div>
+   <div class="f" data-label="Hours / week"><input type="text" inputmode="decimal" data-f="hours" value="${val(it.hours)}" aria-label="Hours per week"></div>
    <div class="acts"><button class="iconbtn" data-act="up" aria-label="Move up" ${i===0?"disabled":""}>↑</button><button class="iconbtn" data-act="down" aria-label="Move down" ${i===list.length-1?"disabled":""}>↓</button><button class="iconbtn" data-act="del" aria-label="Remove">×</button></div>
    ${meta?`<div class="meta">${meta}</div>`:""}</div>`}).join("");
  const earning=list.filter(x=>x.stage==="earning").reduce((a,x)=>a+(+x.est||0),0), all=list.filter(x=>x.stage!=="paused").reduce((a,x)=>a+(+x.est||0),0);
@@ -1844,6 +1850,10 @@ async function saveAndSync(msgEl,label){
  $(msgEl).textContent=ok?`${label} Saved and synced · ${stamp(state.updatedAt)}`:`${label} Saved on this device, but the sync failed. Press Save and sync again.`;
 }
 
+document.addEventListener("input",e=>{const t=e.target;if(!t.classList||!t.classList.contains("money"))return;
+ const cleaned=t.value.replace(/[^\d.,]/g,"");if(cleaned!==t.value)t.value=cleaned;t.classList.toggle("bad",isNaN(parseMoney(t.value))||false)},true);
+document.addEventListener("focusout",e=>{const t=e.target;if(!t.classList||!t.classList.contains("money"))return;
+ const v=parseMoney(t.value);if(v!==undefined&&!isNaN(v))t.value=moneyFmt(v)},true);
 function wirePlanner(){
  P();
  $("tab-btn-portfolio").addEventListener("click",()=>setTab("portfolio"));
@@ -1853,14 +1863,14 @@ function wirePlanner(){
  $("p-form").addEventListener("input",()=>{$("p-saved").textContent="Unsaved changes";ckTotals()});
  $("p-form").addEventListener("submit",async e=>{
   e.preventDefault(); const m=$("p-m").value; if(!m)return;
-  const p=P(), r=p.months[m]=p.months[m]||{}, num=id=>{const v=$(id).value.trim();return v===""?undefined:Math.max(0,+v||0)};
+  const p=P(), r=p.months[m]=p.months[m]||{}, num=id=>{const v=parseMoney($(id).value);return isNaN(v)?undefined:v};
   CK_FIELDS.forEach(([k,id])=>{const v=num(id);if(v===undefined)delete r[k];else r[k]=v});
   r.rep={}; LENDERS.forEach(([k])=>{const v=num("p-in-"+k);if(v!==undefined)r.rep[k]=v});
   r.savedAt=Date.now(); $("p-save").disabled=true;
   await saveAndSync("p-saved",`${mLabel(m)}:`); $("p-save").disabled=false; renderPlanner(); render();
  });
  $("p-debts").addEventListener("change",e=>{const inp=e.target.closest(".balin");if(!inp)return;
-  const L=loans()[inp.dataset.loan]; L.bal=Math.max(0,+inp.value||0); L.asOf=nowM(); save("Balance updated."); renderPlanner()});
+  const L=loans()[inp.dataset.loan]; {const v=parseMoney(inp.value);if(v===undefined||isNaN(v))return;L.bal=v} L.asOf=nowM(); save("Balance updated."); renderPlanner()});
  // OKRs
  $("q-prev").addEventListener("click",()=>{const k=Object.keys(P().okr).sort();viewQ=k[Math.max(0,k.indexOf(viewQ)-1)];editQ=false;renderOkr()});
  $("q-next").addEventListener("click",()=>{const k=Object.keys(P().okr).sort();viewQ=k[Math.min(k.length-1,k.indexOf(viewQ)+1)];editQ=false;renderOkr()});
@@ -1898,11 +1908,11 @@ function wirePlanner(){
   const kr=ob.krs[+t.dataset.kr]; if(!kr)return;
   if(t.dataset.f==="text")kr.text=t.value.trim()||kr.text;
   if(t.dataset.f==="type"){kr.type=t.value;if(kr.type==="manual")delete kr.target;renderOkr()}
-  if(t.dataset.f==="target")kr.target=Math.max(0,+t.value||0)});
+  if(t.dataset.f==="target"){const v=parseMoney(t.value);kr.target=isNaN(v)||v===undefined?0:v}});
  // initiatives
  $("inits").addEventListener("change",e=>{
   const row=e.target.closest(".init[data-i]"); if(!row)return; const it=P().initiatives[+row.dataset.i], f=e.target.dataset.f; if(!it||!f)return;
-  if(f==="name"||f==="stage")it[f]=e.target.value.trim()||it[f]; else{const v=e.target.value.trim();it[f]=v===""?null:Math.max(0,+v||0)}
+  if(f==="name"||f==="stage")it[f]=e.target.value.trim()||it[f]; else{const v=parseMoney(e.target.value);it[f]=(v===undefined||isNaN(v))?null:v}
   save(""); e.target.blur(); renderPlanner()});
  $("inits").addEventListener("click",e=>{
   const b=e.target.closest("button[data-act]"); if(!b)return; const i=+b.closest(".init").dataset.i, L=P().initiatives;
