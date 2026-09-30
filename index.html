@@ -367,6 +367,28 @@
   .linkbtn:hover{color:var(--ink)!important}
   .linkbtn.del{color:var(--garnet)!important}
   .hist td.acts{white-space:nowrap}
+  .ck{display:flex;flex-direction:column;gap:14px}
+  .ckhead{display:flex;flex-wrap:wrap;align-items:end;gap:10px 18px}
+  .ckhead label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--graphite);min-width:200px}
+  .ckhead .saved{margin:0 0 8px}
+  .ckgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+  @media(max-width:900px){.ckgrid{grid-template-columns:1fr}}
+  .ckcard{border:none;margin:0;padding:14px 16px 12px;background:var(--paper-2);display:flex;flex-direction:column;gap:9px;min-width:0}
+  .ckcard legend{float:left;width:100%;padding:0;margin-bottom:2px;font-size:14px;font-weight:700}
+  .ckcard label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--graphite)}
+  .ckcard label small{font-size:11.5px}
+  .ckcard input[type=number]{width:100%;text-align:right}
+  .ckcard input::placeholder{color:#A4ACA6}
+  .cksub{font-size:12px;color:var(--graphite);margin-top:2px}
+  .ckrow{display:flex;justify-content:space-between;font-size:13px;font-variant-numeric:tabular-nums;padding:1px 0}
+  .ckrow b{font-weight:600}
+  .cktot{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);padding-top:8px;margin-top:auto;font-size:13.5px;font-weight:600}
+  .cktot b{font-size:17px;font-variant-numeric:tabular-nums}
+  .cksum{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;font-size:13px;color:var(--graphite);background:var(--paper-2);border:1px solid var(--rule);padding:11px 14px}
+  .cksum b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+  .cksum i{font-style:normal;color:var(--graphite)}
+  .cksum .pos b{color:var(--pine)} .cksum .neg b{color:var(--garnet)}
+  .ck .savebtn{align-self:flex-start;width:auto!important;padding:10px 22px!important}
   #chartGrowth svg.hov rect.mbar{opacity:.3}
   #chartGrowth svg.hov rect.mbar.on{opacity:1}
   #chartGrowth svg.hov rect.mbar.on[data-fut="1"]{opacity:.6}
@@ -551,12 +573,12 @@
       <div class="kpi"><div class="k">Emergency fund · live</div><div class="v num" id="p-ef">฿0</div><div class="s num" id="p-ef-s"></div><div class="s"><span class="track"><i id="p-ef-bar"></i></span></div></div>
       <div class="kpi"><div class="k">Passive income vs burn</div><div class="v num" id="p-pas">0%</div><div class="s num" id="p-pas-s"></div><span class="chip idle" id="p-pas-chip"></span></div>
       <div class="kpi"><div class="k">Debt remaining</div><div class="v num" id="p-debt">฿0</div><div class="s num" id="p-debt-s"></div><span class="chip idle" id="p-debt-chip"></span></div>
-      <div class="kpi"><div class="k">Real estate · 12-month average</div><div class="v num" id="p-re">—</div><div class="s num" id="p-re-s"></div><span class="chip idle" id="p-re-chip"></span></div>
+      <div class="kpi"><div class="k">Commissions · 12-month average</div><div class="v num" id="p-re">—</div><div class="s num" id="p-re-s"></div><span class="chip idle" id="p-re-chip"></span></div>
     </div>
 
     <div class="chartbox">
-      <h3 class="ct">Income by source</h3>
-      <p class="cs">Each finished month, against that month's burn.</p>
+      <h3 class="ct">Monthly earn</h3>
+      <p class="cs">What came in each finished month, by source, against that month's burn.</p>
       <div id="ch-income"></div>
       <div class="lgd" id="lg-income"></div>
     </div>
@@ -590,21 +612,35 @@
 <section class="fold" data-fold="p-check">
   <button class="foldhead"><span>Month-end check-in</span><i></i></button>
   <div class="foldbody">
-    <div class="autoline" id="p-auto"></div>
-    <form class="mform" id="p-form">
-      <label for="p-m">Month<select id="p-m"></select></label>
-      <label for="p-in-re">Real estate income (฿)<input type="number" id="p-in-re" min="0" step="1000" inputmode="numeric"></label>
-      <label for="p-in-pas">Passive income (฿)<input type="number" id="p-in-pas" min="0" step="100" inputmode="numeric"></label>
-      <span></span>
-      <label for="p-in-patch">Repaid to Patch (฿)<input type="number" id="p-in-patch" min="0" step="1000" inputmode="numeric"></label>
-      <label for="p-in-mum">Repaid to Mum (฿)<input type="number" id="p-in-mum" min="0" step="1000" inputmode="numeric"></label>
-      <label for="p-in-nop">Repaid to Nop (฿)<input type="number" id="p-in-nop" min="0" step="1000" inputmode="numeric"></label>
+    <form id="p-form" class="ck">
+      <div class="ckhead"><label for="p-m">Month<select id="p-m"></select></label><span class="saved" id="p-saved"></span></div>
+      <div class="ckgrid">
+        <fieldset class="ckcard"><legend>Earn</legend>
+          <label for="p-in-salary"><span>Salary, after tax</span><input type="number" id="p-in-salary" min="0" step="1000" inputmode="numeric" placeholder="76,000"></label>
+          <label for="p-in-condo"><span>Condo commission</span><input type="number" id="p-in-condo" min="0" step="1000" inputmode="numeric"></label>
+          <label for="p-in-inscom"><span>Insurance commission</span><input type="number" id="p-in-inscom" min="0" step="1000" inputmode="numeric"></label>
+          <label for="p-in-pas"><span>Passive income</span><input type="number" id="p-in-pas" min="0" step="100" inputmode="numeric"></label>
+          <div class="cktot"><span>Total earn</span><b id="ck-earn">฿0</b></div>
+        </fieldset>
+        <fieldset class="ckcard"><legend>Burn</legend>
+          <label for="p-in-living"><span>Living costs</span><input type="number" id="p-in-living" min="0" step="500" inputmode="numeric" placeholder="30,500"></label>
+          <label for="p-in-prem"><span>Insurance premium</span><input type="number" id="p-in-prem" min="0" step="100" inputmode="numeric" placeholder="4,600"></label>
+          <div class="ckfixed" id="ck-fixed"></div>
+          <div class="cktot"><span>Total burn</span><b id="ck-burn">฿0</b></div>
+        </fieldset>
+        <fieldset class="ckcard"><legend>Informal debt repayment</legend>
+          <label for="p-in-patch"><span>Patch <small id="ck-left-patch"></small></span><input type="number" id="p-in-patch" min="0" step="1000" inputmode="numeric"></label>
+          <label for="p-in-mum"><span>Mum <small id="ck-left-mum"></small></span><input type="number" id="p-in-mum" min="0" step="1000" inputmode="numeric"></label>
+          <label for="p-in-nop"><span>Nop <small id="ck-left-nop"></small></span><input type="number" id="p-in-nop" min="0" step="1000" inputmode="numeric"></label>
+          <div class="cktot"><span>Total repaid</span><b id="ck-rep">฿0</b></div>
+        </fieldset>
+      </div>
+      <div class="cksum" id="ck-sum"></div>
       <button type="submit" class="savebtn" id="p-save">Save and sync</button>
     </form>
-    <div class="saved" id="p-saved"></div>
     <div class="histwrap">
       <table class="hist">
-        <thead><tr><th>Month</th><th>Burn</th><th>Salary</th><th>Real estate</th><th>Passive</th><th>Contributed</th><th>Portfolio at month end</th><th>Informal repaid</th><th></th></tr></thead>
+        <thead><tr><th>Month</th><th>Earn</th><th>Burn</th><th>Informal repaid</th><th>Invested</th><th>Left over</th><th>Portfolio at month end</th><th></th></tr></thead>
         <tbody id="p-hist"></tbody>
       </table>
     </div>
@@ -1440,11 +1476,11 @@ $("undo").addEventListener("click",()=>{
 });
 
 /* ================= LONG TERM PLANNER ================= */
-const EF_TARGET=1290000, EF_BY="2027-12", PLAN_START="2026-09", SALARY=76000, RE_FLOOR=75000;
+const EF_TARGET=1290000, EF_BY="2027-12", PLAN_START="2026-09", EARN_KEYS=[["salary","Salary"],["condo","Condo commission"],["inscom","Insurance commission"],["pas","Passive"]];
 const LIVING=30500, INSURANCE=4600;
 const LENDERS=[["patch","Patch",100000],["mum","Mum",50000],["nop","Nop",30000]];
 const INFORMAL_TOTAL=LENDERS.reduce((a,l)=>a+l[2],0);
-const COL={salary:"#8C968F",re:"#2C5F7A",pas:"#2F5D4E",living:"#8C968F",ins:"#B9C0BA",house:"#37504A",tesla:"#6B5B8E",mumloan:"#A8641C",carrefi:"#7A6A2E",informal:"#8C3B4A"};
+const COL={salary:"#8C968F",condo:"#2C5F7A",inscom:"#7FA3B8",pas:"#2F5D4E",living:"#8C968F",ins:"#B9C0BA",house:"#37504A",tesla:"#6B5B8E",mumloan:"#A8641C",carrefi:"#7A6A2E",informal:"#8C3B4A"};
 
 const ym=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
 const nowM=()=>ym(new Date());
@@ -1477,7 +1513,8 @@ function payments(m){return {
  tesla:(m>="2026-04"&&m<="2030-03")?13495:0,
  mumloan:m<="2027-06"?5000:0,
  carrefi:(m>="2027-02"&&m<="2031-03")?16346:0}}
-function burnParts(m){const d=payments(m);return {living:LIVING,ins:INSURANCE,house:d.house,tesla:d.tesla,mumloan:d.mumloan,carrefi:d.carrefi}}
+function mrec(m){return (state&&state.plan&&state.plan.months&&state.plan.months[m])||{}}
+function burnParts(m){const d=payments(m),r=mrec(m);return {living:typeof r.living==="number"?r.living:LIVING,ins:typeof r.prem==="number"?r.prem:INSURANCE,house:d.house,tesla:d.tesla,mumloan:d.mumloan,carrefi:d.carrefi}}
 function burnFor(m){return sum(burnParts(m))}
 
 /* ---------- plan state ---------- */
@@ -1500,7 +1537,7 @@ const SEED_INITS=[
 function P(){
  if(!state.plan)state.plan={};
  const p=state.plan;
- p.months=p.months||{}; Object.keys(p.months).forEach(m=>{if(m<PLAN_START)delete p.months[m]}); p.initiatives=p.initiatives||JSON.parse(JSON.stringify(SEED_INITS));
+ p.months=p.months||{}; Object.keys(p.months).forEach(m=>{if(m<PLAN_START){delete p.months[m];return} const r=p.months[m]; if(typeof r.re==="number"&&typeof r.condo!=="number")r.condo=r.re; delete r.re}); p.initiatives=p.initiatives||JSON.parse(JSON.stringify(SEED_INITS));
  if(!p.okr){p.okr={"2026-Q4":JSON.parse(JSON.stringify(Q4_2026))}}
  delete p.kr;
  return p;
@@ -1523,8 +1560,11 @@ function informalPlan(m){ // straight line to zero by Jun 2027 from Sep 2026
 function latestPassive(){const p=P();const ms=closedMonths().filter(m=>typeof (p.months[m]||{}).pas==="number");
  if(!ms.length)return null;const m=ms[ms.length-1];return {m,v:p.months[m].pas,r:p.months[m].pas/burnFor(m)}}
 function passiveStreak(){const p=P();let run=0;for(const m of closedMonths().reverse()){const v=(p.months[m]||{}).pas;if(typeof v==="number"&&v>=burnFor(m))run++;else break}return run}
-function reStats(){const p=P();const ms=closedMonths().filter(m=>typeof (p.months[m]||{}).re==="number").slice(-12);
- if(!ms.length)return null;const v=ms.map(m=>p.months[m].re);return {n:v.length,avg:v.reduce((a,b)=>a+b,0)/v.length,min:Math.min(...v)}}
+const comOf=m=>{const r=mrec(m);return (+r.condo||0)+(+r.inscom||0)};
+const earnOf=m=>{const r=mrec(m);return EARN_KEYS.reduce((a,[k])=>a+(+r[k]||0),0)};
+const logged=m=>!!mrec(m).savedAt;
+function reStats(){const ms=closedMonths().filter(logged).slice(-12);
+ if(!ms.length)return null;const v=ms.map(comOf);return {n:v.length,avg:v.reduce((a,b)=>a+b,0)/v.length,min:Math.min(...v)}}
 function efNeed(){const left=Math.max(0,EF_TARGET-totalValue());const n=Math.max(1,mDiff(nowM(),EF_BY));return {left,n,per:left/n}}
 function earningCount(){return P().initiatives.filter(x=>x.stage==="earning").length}
 function chip(id,cls,txt){const el=$(id);el.className="chip "+cls;el.textContent=txt;el.hidden=!txt}
@@ -1587,7 +1627,7 @@ function stackChart(elId,lgId,dtId,cfg){
   svg.classList.add("hov"); svg.querySelectorAll("[data-i]").forEach(n=>n.classList.toggle("on",+n.dataset.i===i));
   const rows=cfg.series.filter(s=>(s.vals[i]||0)>0).map(s=>`<div class="r"><u style="background:${s.color}"></u><span>${s.name}</span><b>${baht(s.vals[i])}</b></div>`).join("");
   tip.innerHTML=`<div class="h">${mLabel(m)}${cfg.futureFrom!=null&&i>=cfg.futureFrom?" · scheduled":""}</div>${rows||'<div class="r"><span>Nothing</span></div>'}`+
-   `<div class="r t"><span>Total</span><b>${baht(tot[i])}</b></div>`+(cfg.line?`<div class="r"><u class="ln"></u><span>${cfg.line.name}</span><b>${baht(cfg.line.vals[i])}</b></div>`:"");
+   `<div class="r t"><span>Total</span><b>${baht(tot[i])}</b></div>`+(cfg.line?`<div class="r"><u class="ln"></u><span>${cfg.line.name}</span><b>${baht(cfg.line.vals[i])}</b></div>`:"")+(cfg.extra?cfg.extra(i):"");
   tip.hidden=false;
   const k=svg.getBoundingClientRect().width/W, cx=(L+bw*i+bw/2)*k, half=w*k/2+8, cw=el.clientWidth, tw=tip.offsetWidth, th=tip.offsetHeight;
   let x=cx+half; if(x+tw>cw)x=cx-half-tw; if(x<0)x=Math.max(0,Math.min(cw-tw,cx-tw/2));
@@ -1615,17 +1655,17 @@ function renderKpis(){
  chip("p-debt-chip",inf===0?"good":(onPlan?"good":"bad"),inf===0?"Informal debt cleared":(onPlan?"Informal on schedule":"Informal behind schedule"));
  const re=reStats();
  if(re){$("p-re").textContent=baht(re.avg);$("p-re-s").textContent=`Lowest ${baht(re.min)} · ${re.n} of 12 months logged`;
-  chip("p-re-chip",re.n<12?"warn":(re.avg>=RE_FLOOR?"good":"bad"),re.n<12?"Building history":(re.avg>=RE_FLOOR?"Averaging ≥ ฿75k":"Below ฿75k"))}
+  chip("p-re-chip",re.n<12?"warn":"good",re.n<12?"Building history":"Full year logged")}
  else{$("p-re").textContent="—";$("p-re-s").textContent="Log it at each month end";chip("p-re-chip","idle","No data yet")}
 }
 function renderCharts2(){
  const p=P(), cms=closedMonths();
- if(!cms.length){$("ch-income").innerHTML=`<p class="cs" style="padding:40px 0;text-align:center">The first bar appears once September is checked in on 1 October.</p>`;$("lg-income").innerHTML=""}
- else stackChart("ch-income","lg-income","dt-income",{months:cms,
-  series:[{name:"Salary",color:COL.salary,vals:cms.map(()=>SALARY)},
-          {name:"Real estate",color:COL.re,vals:cms.map(m=>+(p.months[m]||{}).re||0)},
-          {name:"Passive",color:COL.pas,vals:cms.map(m=>+(p.months[m]||{}).pas||0)}],
-  line:{name:"Burn",vals:cms.map(burnFor)}});
+ const lm=cms.filter(logged);
+ if(!lm.length){$("ch-income").innerHTML=`<p class="cs" style="padding:40px 0;text-align:center">The first bar appears once September is checked in on 1 October.</p>`;$("lg-income").innerHTML=""}
+ else stackChart("ch-income","lg-income","dt-income",{months:lm,
+  series:EARN_KEYS.map(([k,name])=>({name,color:COL[k],vals:lm.map(m=>+mrec(m)[k]||0)})),
+  line:{name:"Burn",vals:lm.map(burnFor)},
+  extra:i=>{const d=earnOf(lm[i])-burnFor(lm[i]);return `<div class="r"><span>Left after burn</span><b class="${d>=0?"tpos":"tneg"}">${d>=0?"":"−"}${baht(Math.abs(d))}</b></div>`}});
  const bm=range(nowM(),"2028-12");
  stackChart("ch-burn","lg-burn","dt-burn",{months:bm,
   series:[{name:"Living",color:COL.living,vals:bm.map(m=>LIVING)},
@@ -1654,21 +1694,37 @@ function renderDebts(){
   `<tr class="tot"><td>Total</td><td></td><td>${baht(formalPay)}</td><td>${baht(houseBal(m)+teslaBal(m)+carBal(m)+mumLoanBal(m)+informalLeft())}<span class="role">including the house</span></td><td></td></tr>`;
 }
 function checkinMonths(){return closedMonths().slice().reverse()}
+const CK_FIELDS=[["salary","p-in-salary"],["condo","p-in-condo"],["inscom","p-in-inscom"],["pas","p-in-pas"],["living","p-in-living"],["prem","p-in-prem"]];
+function ckVal(id,fallback){const v=$(id).value.trim();return v===""?fallback:Math.max(0,+v||0)}
+function ckTotals(){
+ const m=$("p-m").value; if(!m)return;
+ const earn=["p-in-salary","p-in-condo","p-in-inscom","p-in-pas"].reduce((a,id)=>a+ckVal(id,0),0);
+ const d=payments(m), liv=ckVal("p-in-living",LIVING), prem=ckVal("p-in-prem",INSURANCE);
+ const sched=[["House, your share",d.house],["Tesla",d.tesla],["Mum's loan",d.mumloan],["Car refinance",d.carrefi]].filter(x=>x[1]>0);
+ const burn=liv+prem+sched.reduce((a,x)=>a+x[1],0);
+ const rep=LENDERS.reduce((a,[k])=>a+ckVal("p-in-"+k,0),0), inv=contributedIn(m), left=earn-burn-rep-inv;
+ $("ck-fixed").innerHTML=`<div class="cksub">Loan instalments, scheduled</div>`+sched.map(([n,v])=>`<div class="ckrow"><span>${n}</span><b>${baht(v)}</b></div>`).join("");
+ $("ck-earn").textContent=baht(earn); $("ck-burn").textContent=baht(burn); $("ck-rep").textContent=baht(rep);
+ LENDERS.forEach(([k,,amt])=>{const before=Math.max(0,amt-repaidTo(k)+(+((mrec(m).rep||{})[k])||0));$("ck-left-"+k).textContent=`· ${baht(before)} owed at start of month`});
+ $("ck-sum").innerHTML=`<span>Earn <b>${baht(earn)}</b></span><i>−</i><span>Burn <b>${baht(burn)}</b></span><i>−</i><span>Debt repaid <b>${baht(rep)}</b></span><i>−</i><span>Invested <b>${baht(inv)}</b></span><i>=</i><span class="${left>=0?"pos":"neg"}">Left over <b>${left>=0?"":"−"}${baht(Math.abs(left))}</b></span>`;
+}
 function fillMonth(){
- const m=$("p-m").value,p=P();
- if(!m){$("p-auto").textContent="The first month opens once it has ended.";return}
- const r=p.months[m]||{},rep=r.rep||{},pv=portfolioAt(m);
- $("p-auto").innerHTML=`Filled in for ${mLabel(m)}: salary <b>${baht(SALARY)}</b> · contributed <b>${baht(contributedIn(m))}</b> · portfolio at month end <b>${pv==null?"no reading":baht(pv)}</b> · burn <b>${baht(burnFor(m))}</b>`;
- $("p-in-re").value=typeof r.re==="number"?r.re:""; $("p-in-pas").value=typeof r.pas==="number"?r.pas:"";
+ const m=$("p-m").value;
+ $("p-form").querySelectorAll("input,button[type=submit]").forEach(x=>x.disabled=!m);
+ if(!m){$("p-saved").textContent="September opens for check-in on 1 October.";$("ck-sum").innerHTML="";$("ck-fixed").innerHTML="";return}
+ const r=mrec(m),rep=r.rep||{};
+ CK_FIELDS.forEach(([k,id])=>{$(id).value=typeof r[k]==="number"?r[k]:""});
  LENDERS.forEach(([k])=>{$("p-in-"+k).value=typeof rep[k]==="number"?rep[k]:""});
  $("p-saved").textContent=r.savedAt?`Last saved ${stamp(r.savedAt)}`:"Not saved yet";
+ ckTotals();
 }
 function renderHist(){
- const p=P(),ms=checkinMonths(),c=v=>typeof v==="number"?baht(v):"—";
- $("p-hist").innerHTML=ms.length?ms.map(m=>{const r=p.months[m]||{},pv=portfolioAt(m);
-  return `<tr><td>${mShort(m)}</td><td>${baht(burnFor(m))}</td><td>${baht(SALARY)}</td><td class="${typeof r.re==="number"&&r.re<RE_FLOOR?"low":""}">${c(r.re)}</td><td>${c(r.pas)}</td><td>${baht(contributedIn(m))}</td><td>${pv==null?"—":baht(pv)}</td><td>${r.rep?baht(repaidIn(m)):"—"}</td>
-   <td class="acts">${r.savedAt?`<button class="linkbtn" data-hact="edit" data-m="${m}">Edit</button><button class="linkbtn del" data-hact="del" data-m="${m}">Delete</button>`:`<button class="linkbtn" data-hact="edit" data-m="${m}">Add</button>`}</td></tr>`}).join("")
- :`<tr><td colspan="9">No finished months yet.</td></tr>`;
+ const p=P(),ms=checkinMonths();
+ $("p-hist").innerHTML=ms.length?ms.map(m=>{const r=p.months[m]||{},pv=portfolioAt(m),ok=!!r.savedAt;
+  const earn=earnOf(m),burn=burnFor(m),rep=repaidIn(m),inv=contributedIn(m),left=earn-burn-rep-inv;
+  return `<tr><td>${mShort(m)}</td><td>${ok?baht(earn):"—"}</td><td>${baht(burn)}</td><td>${ok?baht(rep):"—"}</td><td>${baht(inv)}</td><td class="${ok&&left<0?"low":""}">${ok?(left<0?"−":"")+baht(Math.abs(left)):"—"}</td><td>${pv==null?"—":baht(pv)}</td>
+   <td class="acts">${ok?`<button class="linkbtn" data-hact="edit" data-m="${m}">Edit</button><button class="linkbtn del" data-hact="del" data-m="${m}">Delete</button>`:`<button class="linkbtn" data-hact="edit" data-m="${m}">Add</button>`}</td></tr>`}).join("")
+ :`<tr><td colspan="8">No finished months yet.</td></tr>`;
 }
 function renderOkr(){
  const p=P(), cq=qOf(nowM());
@@ -1793,12 +1849,11 @@ function wirePlanner(){
  $("tab-btn-planner").addEventListener("click",()=>setTab("planner"));
  $("p-m").innerHTML=checkinMonths().map(m=>`<option value="${m}">${mLabel(m)}</option>`).join("");
  $("p-m").addEventListener("change",fillMonth);
- $("p-form").addEventListener("input",()=>{$("p-saved").textContent="Unsaved changes"});
+ $("p-form").addEventListener("input",()=>{$("p-saved").textContent="Unsaved changes";ckTotals()});
  $("p-form").addEventListener("submit",async e=>{
   e.preventDefault(); const m=$("p-m").value; if(!m)return;
   const p=P(), r=p.months[m]=p.months[m]||{}, num=id=>{const v=$(id).value.trim();return v===""?undefined:Math.max(0,+v||0)};
-  const re=num("p-in-re"),pas=num("p-in-pas");
-  if(re===undefined)delete r.re;else r.re=re; if(pas===undefined)delete r.pas;else r.pas=pas;
+  CK_FIELDS.forEach(([k,id])=>{const v=num(id);if(v===undefined)delete r[k];else r[k]=v});
   r.rep={}; LENDERS.forEach(([k])=>{const v=num("p-in-"+k);if(v!==undefined)r.rep[k]=v});
   r.savedAt=Date.now(); $("p-save").disabled=true;
   await saveAndSync("p-saved",`${mLabel(m)}:`); $("p-save").disabled=false; renderPlanner(); render();
@@ -1819,7 +1874,7 @@ function wirePlanner(){
   if(b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent="Tap again to delete";setTimeout(()=>{b.dataset.confirm="";b.textContent="Delete quarter"},3000);return}
   const p=P();delete p.okr[viewQ];viewQ=null;editQ=false;b.dataset.confirm="";b.textContent="Delete quarter";save("Quarter deleted.");renderOkr()});
  $("p-hist").addEventListener("click",async e=>{const b=e.target.closest("button[data-hact]");if(!b)return;const m=b.dataset.m;
-  if(b.dataset.hact==="edit"){$("p-m").value=m;fillMonth();$("p-form").scrollIntoView({behavior:"smooth",block:"center"});$("p-in-re").focus();return}
+  if(b.dataset.hact==="edit"){$("p-m").value=m;fillMonth();$("p-form").scrollIntoView({behavior:"smooth",block:"center"});$("p-in-salary").focus();return}
   if(b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent="Tap again";setTimeout(()=>{b.dataset.confirm="";b.textContent="Delete"},3000);return}
   delete P().months[m]; if($("p-m").value===m)fillMonth(); renderPlanner(); render(); await saveAndSync("p-saved",`${mLabel(m)} deleted.`)});
  $("q-setup").addEventListener("click",()=>{
