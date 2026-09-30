@@ -1547,7 +1547,8 @@ const KR_STATUS=[["todo","Not started"],["on","On track"],["risk","At risk"],["d
 const KR_TYPES=[["manual","Tick off yourself"],["contrib","Portfolio contributions ≥"],["passive","Passive income a month ≥"],["debt","Informal debt repaid ≥"]];
 
 /* ---------- derived numbers ---------- */
-function closedMonths(){return range(PLAN_START,addM(nowM(),-1))}
+// finished months, plus the current month once it has been checked in
+function closedMonths(){const cur=nowM();return range(PLAN_START,cur).filter(m=>m<cur||!!mrec(m).savedAt)}
 function contributedIn(m){return (state.contributions||[]).reduce((a,c,i)=>ym(new Date(parseDay(c.date,i)))===m?a+sum(c.buys):a,0)}
 function portfolioAt(m){const end=mEndIso(m),sn=(state.snapshots||[]).filter(x=>x.d<=end);return sn.length?sn[sn.length-1].v:null}
 function repaidIn(m){const r=(P().months[m]||{}).rep||{};return LENDERS.reduce((a,[k])=>a+(+r[k]||0),0)}
@@ -1661,7 +1662,7 @@ function renderKpis(){
 function renderCharts2(){
  const p=P(), cms=closedMonths();
  const lm=cms.filter(logged);
- if(!lm.length){$("ch-income").innerHTML=`<p class="cs" style="padding:40px 0;text-align:center">The first bar appears once September is checked in on 1 October.</p>`;$("lg-income").innerHTML=""}
+ if(!lm.length){$("ch-income").innerHTML=`<p class="cs" style="padding:40px 0;text-align:center">The first bar appears once you save your first month-end check-in.</p>`;$("lg-income").innerHTML=""}
  else stackChart("ch-income","lg-income","dt-income",{months:lm,
   series:EARN_KEYS.map(([k,name])=>({name,color:COL[k],vals:lm.map(m=>+mrec(m)[k]||0)})),
   line:{name:"Burn",vals:lm.map(burnFor)},
@@ -1693,7 +1694,7 @@ function renderDebts(){
  $("p-debts").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join("")+
   `<tr class="tot"><td>Total</td><td></td><td>${baht(formalPay)}</td><td>${baht(houseBal(m)+teslaBal(m)+carBal(m)+mumLoanBal(m)+informalLeft())}<span class="role">including the house</span></td><td></td></tr>`;
 }
-function checkinMonths(){return closedMonths().slice().reverse()}
+function checkinMonths(){return range(PLAN_START,nowM()).reverse()}
 const CK_FIELDS=[["salary","p-in-salary"],["condo","p-in-condo"],["inscom","p-in-inscom"],["pas","p-in-pas"],["living","p-in-living"],["prem","p-in-prem"]];
 function ckVal(id,fallback){const v=$(id).value.trim();return v===""?fallback:Math.max(0,+v||0)}
 function ckTotals(){
@@ -1711,7 +1712,7 @@ function ckTotals(){
 function fillMonth(){
  const m=$("p-m").value;
  $("p-form").querySelectorAll("input,button[type=submit]").forEach(x=>x.disabled=!m);
- if(!m){$("p-saved").textContent="September opens for check-in on 1 October.";$("ck-sum").innerHTML="";$("ck-fixed").innerHTML="";return}
+ if(!m){$("p-saved").textContent="No months to check in yet.";$("ck-sum").innerHTML="";$("ck-fixed").innerHTML="";return}
  const r=mrec(m),rep=r.rep||{};
  CK_FIELDS.forEach(([k,id])=>{$(id).value=typeof r[k]==="number"?r[k]:""});
  LENDERS.forEach(([k])=>{$("p-in-"+k).value=typeof rep[k]==="number"?rep[k]:""});
