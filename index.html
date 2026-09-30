@@ -410,6 +410,18 @@
   .cgrid input{width:100%!important;text-align:left!important;font-family:inherit;font-size:14px;padding:6px 7px;border:1px solid var(--rule);background:#fff;color:var(--ink)}
   .cacts{display:flex;gap:8px}
   .cacts button{width:auto;margin:0;padding:8px 14px;font-size:13px}
+  .modal{position:fixed;inset:0;z-index:50;background:rgba(24,33,29,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+  .mbox{background:var(--paper-2);border:1px solid var(--ink);width:100%;max-width:460px;max-height:90vh;overflow:auto;padding:18px}
+  .mbox h3{margin:0 0 4px}
+  .urows{display:flex;flex-direction:column;margin:14px 0 4px;border-top:1px solid var(--rule)}
+  .urow{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rule)}
+  .urow .ut{display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}
+  .urow .ut small{flex-basis:100%;font-size:12px;color:var(--graphite)}
+  .urow input{font-family:inherit;font-size:16px;padding:8px;border:1px solid var(--rule);background:#fff;color:var(--ink);text-align:right;width:100%;font-variant-numeric:tabular-nums}
+  .urow input.bad{border-color:var(--garnet)}
+  .mact{display:flex;gap:8px;margin-top:12px}
+  .mact button{width:auto;margin:0}
+  @media(max-width:420px){.urow{grid-template-columns:1fr 130px}}
 </style>
 </head>
 <body>
@@ -907,6 +919,11 @@ function tipHide(host){const t=host&&host.querySelector(":scope > .ctip");if(t)t
  if(host)host.querySelectorAll(".hov").forEach(n=>n.classList.remove("hov")),host.querySelectorAll(".on").forEach(n=>n.classList.remove("on"))}
 const tipRow=(label,val,color)=>`<div class="r">${color?`<u style="background:${color}"></u>`:""}<span>${label}</span><b>${val}</b></div>`;
 document.addEventListener("click",e=>{document.querySelectorAll(".ctip:not([hidden])").forEach(t=>{const h=t.parentElement;if(!h.contains(e.target))tipHide(h)})});
+
+/* ---------- labels: Month x (calendar month of the plan) · Contribution y (running count) ---------- */
+const PLAN_M0=2026*12+7; // August 2026 = month 1
+const mIdxOf=ts=>{const d=new Date(ts);return d.getFullYear()*12+d.getMonth()-PLAN_M0+1};
+function cLabel(i){const c=state.contributions[i];return c?`Month ${mIdxOf(parseDay(c.date,i))} · Contribution ${i+1}`:`Contribution ${i+1}`}
 function renderGrowth(){
  const el=$("chartGrowth"); if(!el)return;
  const showProj=!!(state.ui&&state.ui.proj);
@@ -995,7 +1012,7 @@ function renderGrowth(){
  bars.forEach((b,i)=>{
   const every=narrow?(N>6?3:1):(N>10?2:1);
   if(i%every!==0&&i!==N-1&&i!==done-1)return;
-  lab+=`<text class="mlab" data-i="${i}" x="${x(i)}" y="${H-B+17}" text-anchor="middle" font-size="${narrow?10:11}" font-weight="600" fill="#18211D">M${b.n}</text>`;
+  lab+=`<text class="mlab" data-i="${i}" x="${x(i)}" y="${H-B+17}" text-anchor="middle" font-size="${narrow?10:11}" font-weight="600" fill="#18211D">#${b.n}</text>`;
   if(b.date&&!narrow)lab+=`<text x="${x(i)}" y="${H-B+30}" text-anchor="middle" font-size="10" fill="#5C6660">${esc(b.date.replace(/ 20\d\d$/,""))}</text>`;
  });
 
@@ -1013,7 +1030,7 @@ function renderGrowth(){
    svgG.classList.add("hov");
    svgG.querySelectorAll("[data-i]").forEach(n=>n.classList.toggle("on",+n.dataset.i===k));
    const buys=b.buys?Object.entries(b.buys).sort((a,c)=>c[1]-a[1]).map(([t,v])=>tipRow(t,baht(v),byT(t).color)).join(""):tipRow("Planned",baht(b.amt));
-   tipShow(el,rc,`<div class="h">Month ${b.n}${b.date?" · "+esc(b.date):" · not yet made"}</div>${buys}`+
+   tipShow(el,rc,`<div class="h">${b.date?cLabel(b.n-1)+" · "+esc(b.date):"Contribution "+b.n+" · not yet made"}</div>${buys}`+
     `<div class="r t"><span>Put in this month</span><b>${baht(b.amt)}</b></div>`+
     tipRow("Running total",baht(b.cum))+(val!=null?tipRow("Worth",baht(val)):""));
   };
@@ -1094,7 +1111,8 @@ function renderDrift(){
 function renderKpis(){
  const invested=sum(costBasis()), total=totalValue();
  const ml=monthsLeft(), planned=Math.max(0,+($("cash")?$("cash").value:50000)||50000);
- $("kpiMonths").textContent=(state.contributions.length)+" of 17 months";
+ const ms=new Set(state.contributions.map((c,i)=>{const d=new Date(parseDay(c.date,i));return d.getFullYear()*12+d.getMonth()}));
+ $("kpiMonths").textContent=`Month ${Math.max(1,mIdxOf(Date.now()))} of 17 · ${state.contributions.length} contributions`;
  $("kpiPct").textContent=(total/1000000*100).toFixed(1)+"%";
  const need=pmtNeeded(total,1000000,ml,0.12);
  $("kpiNeed").textContent=baht(need);
@@ -1326,7 +1344,18 @@ function render(){
  renderPlanner();
 }
 
+function nextBuyDate(){
+ const cs=state.contributions; const now=new Date();
+ let base=cs.length?new Date(Math.max(...cs.map((c,i)=>parseDay(c.date,i)))):now;
+ // a buy in the first half of a month counts for that month's end, otherwise the next month's end
+ let y=base.getFullYear(), m=base.getMonth()+(base.getDate()>15?1:0);
+ let d=new Date(y,m+1,0);
+ const curEnd=new Date(now.getFullYear(),now.getMonth()+1,0);
+ if(d<new Date(now.getFullYear(),now.getMonth(),now.getDate()))d=curEnd;
+ return `${d.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})} · Month ${mIdxOf(d.getTime())} · Contribution ${cs.length+1}`;
+}
 function drawTicket(plan,planTotal){
+ $("nextwhen").textContent=nextBuyDate();
  $("orders").innerHTML=plan.map(o=>{
   const h=byT(o.t),p=prices[o.t],u=p?o.amt/(p*fxRate):null;
   return `<div class="order">
@@ -1409,7 +1438,7 @@ function renderContribs(){
   if(i===editCI){
    cw.insertAdjacentHTML("beforeend",`
    <div class="contrib cedit" data-ci="${i}">
-    <div class="chead"><span class="cwhen">Editing month ${i+1}</span></div>
+    <div class="chead"><span class="cwhen">Editing ${cLabel(i)}</span></div>
     <div class="cgrid">
      <label>Date<input type="date" id="ce-date" value="${isoOf(c)}"></label>
      ${TARGETS.map(h=>`<label><span><span class="tick" style="background:${h.color}"></span>${h.t} (฿)</span><input type="text" class="money" inputmode="decimal" data-ct="${h.t}" value="${moneyFmt(c.buys[h.t])}"></label>`).join("")}
@@ -1427,7 +1456,7 @@ function renderContribs(){
   const cryptoAmt=parts.filter(([t])=>byT(t).kind==="crypto").reduce((a,b)=>a+b[1],0);
   cw.insertAdjacentHTML("beforeend",`
    <div class="contrib" data-ci="${i}">
-     <div class="chead"><span class="cwhen">Month ${i+1}<em>${esc(c.date)}</em></span><span class="camt">${baht(tot)}</span></div>
+     <div class="chead"><span class="cwhen">${cLabel(i)}<em>${esc(c.date)}</em></span><span class="camt">${baht(tot)}</span></div>
      <div class="cbar">${segs}</div>
      <div class="clegend cfoot"><span>Binance ${baht(cryptoAmt)} · Dime ${baht(tot-cryptoAmt)}</span>
        <span><button class="linkbtn" data-cact="edit">Edit</button><button class="linkbtn del" data-cact="del">Delete</button></span></div>
@@ -1469,9 +1498,42 @@ $("record").addEventListener("click",()=>{
  const units={};
  plan.forEach(o=>{buys[o.t]=o.amt;if(prices[o.t]){units[o.t]=o.amt/(prices[o.t]*fxRate);state.units[o.t]=(state.units[o.t]||0)+units[o.t]}});
  const date=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+ const before={}; for(const t in buys)before[t]=(state.units[t]||0)-(units[t]||0);
  state.contributions.push({date,buys,units});
  save("Contribution recorded at today's prices.");render();
+ askUnits(state.contributions.length-1,before);
 });
+
+/* ---------- after a buy: confirm the new unit totals ---------- */
+function askUnits(ci,before){
+ const c=state.contributions[ci]; if(!c)return;
+ const ts=Object.keys(c.buys);
+ const dp=t=>byT(t).kind==="crypto"?8:4;
+ const ov=document.createElement("div"); ov.className="modal"; ov.setAttribute("role","dialog"); ov.setAttribute("aria-modal","true"); ov.setAttribute("aria-labelledby","um-h");
+ ov.innerHTML=`<div class="mbox">
+  <h3 id="um-h">Units you now hold</h3>
+  <p class="sub">Enter the new total for each holding you just bought, as shown in ${[...new Set(ts.map(t=>VENUES[byT(t).kind].name))].join(" and ")}.</p>
+  <div class="urows">${ts.map(t=>{const est=(before[t]||0)+(c.units&&c.units[t]||0);
+   return `<label class="urow"><span class="ut"><span class="tick" style="background:${byT(t).color}"></span><b>${t}</b><small>${VENUES[byT(t).kind].name} · bought ${baht(c.buys[t])} · had ${(before[t]||0).toFixed(dp(t))}</small></span>
+    <input type="text" inputmode="decimal" data-ut="${t}" value="${est.toFixed(dp(t))}" aria-label="${t} total units"></label>`}).join("")}</div>
+  <div class="mact"><button id="um-save">Save units</button><button class="ghost" id="um-skip">Keep estimates</button></div>
+ </div>`;
+ document.body.appendChild(ov);
+ const first=ov.querySelector("input"); if(first){first.focus();first.select()}
+ const close=()=>{ov.remove();document.removeEventListener("keydown",esc1)};
+ const esc1=e=>{if(e.key==="Escape")close()}; document.addEventListener("keydown",esc1);
+ ov.querySelector("#um-skip").addEventListener("click",close);
+ ov.querySelector("#um-save").addEventListener("click",()=>{
+  let bad=false;
+  ov.querySelectorAll("input[data-ut]").forEach(inp=>{
+   const v=+String(inp.value).replace(/[,\s]/g,"");
+   if(!isFinite(v)||v<0){inp.classList.add("bad");bad=true;return}
+   const t=inp.dataset.ut; state.units[t]=v; c.units=c.units||{}; c.units[t]=Math.max(0,v-(before[t]||0));
+  });
+  if(bad)return;
+  unitsSeeded=false; save("Units saved."); render(); close();
+ });
+}
 $("undo").addEventListener("click",()=>{
  if(!state.contributions.length)return;
  editCI=null; deleteContribution(state.contributions.length-1);
@@ -1646,7 +1708,7 @@ function stackChart(elId,lgId,dtId,cfg){
 }
 
 /* ---------- renderers ---------- */
-function renderKpis(){
+function renderPlanKpis(){
  const v=totalValue(), need=efNeed();
  $("p-ef").innerHTML=`${baht(v)} <small>of ฿1.29M</small>`;
  $("p-ef-bar").style.width=Math.min(100,v/EF_TARGET*100)+"%";
@@ -1821,7 +1883,7 @@ function renderDirection(){
 }
 function renderPlanner(){
  if(!state)return;
- renderKpis(); renderDebts(); renderHist(); renderRoad("road-assets",MS_ASSETS); renderRoad("road-debts",MS_DEBTS); renderDirection();
+ renderPlanKpis(); renderDebts(); renderHist(); renderRoad("road-assets",MS_ASSETS); renderRoad("road-debts",MS_DEBTS); renderDirection();
  if(!$("krs").contains(document.activeElement))renderOkr();
  if(!$("inits").contains(document.activeElement))renderInits();
  if(!$("tab-planner").hidden)renderCharts2();
