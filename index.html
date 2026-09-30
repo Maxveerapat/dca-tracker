@@ -395,7 +395,11 @@
   #chartGrowth svg.hov rect.mbar{opacity:.3}
   #chartGrowth svg.hov rect.mbar.on{opacity:1}
   #chartGrowth svg.hov rect.mbar.on[data-fut="1"]{opacity:.6}
-  #chartGrowth svg.hov .mlab.on{fill:#A8641C}
+  #chartGrowth .mlab{display:none}
+  #chartGrowth .mlab.show{display:inline}
+  #chartGrowth svg.hov .mlab.show{opacity:.35}
+  #chartGrowth svg.hov .mlab.on{display:inline;opacity:1}
+  #chartGrowth svg.hov .mlab.on text{fill:#A8641C}
   .mixbar.hov i{opacity:.3}
   .mixbar.hov i.on{opacity:1}
   #chartDrift svg.hov .dbar{opacity:.25}
@@ -930,118 +934,76 @@ function renderGrowth(){
  const narrow=window.innerWidth<760;
  const W=narrow?390:760, H=narrow?300:320, L=narrow?46:58, R=narrow?12:16, T=18, B=narrow?46:50;
  const planned=Math.max(0,+($("cash")?$("cash").value:50000)||50000);
- const basis=costBasis();
-
- // x axis is contribution number — how the plan is actually lived, one buy a month
- const cs=(state.contributions||[]);
- const done=cs.length;
- const N=showProj?17:Math.max(done,2);
- const bars=[];
- let run=0;
- for(let i=0;i<N;i++){
-  const c=cs[i];
-  const amt=c?sum(c.buys):planned;
+ const MSH=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+ const now=new Date(), curIdx=mIdxOf(now.getTime());           // month number of today (Aug 2026 = 1)
+ const N=showProj?Math.max(17,curIdx):Math.max(curIdx,2);
+ const ymOf=k=>{const t=PLAN_M0+k-1;return {y:Math.floor(t/12),m:t%12}};
+ const endIso=k=>{const {y,m}=ymOf(k);const d=new Date(y,m+1,0);return `${y}-${String(m+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+ const cs=(state.contributions||[]).map((c,i)=>({i,c,k:mIdxOf(parseDay(c.date,i))}));
+ const snaps=state.snapshots||[];
+ const nowVal=totalValue(), r=Math.pow(1.12,1/12)-1;
+ const bars=[]; let run=0, v=nowVal;
+ for(let k=1;k<=N;k++){
+  const inM=cs.filter(x=>x.k===k), future=k>curIdx;
+  const amt=future?planned:inM.reduce((a,x)=>a+sum(x.c.buys),0);
   run+=amt;
-  bars.push({n:i+1, amt, cum:run, future:!c, date:c?c.date:"", buys:c?c.buys:null});
+  let val=null;
+  if(k===curIdx)val=nowVal;
+  else if(k<curIdx){const sn=snaps.filter(x=>x.d<=endIso(k));if(sn.length)val=sn[sn.length-1].v}
+  else if(showProj){v=v*(1+r)+planned;val=v}
+  const {y,m}=ymOf(k);
+  bars.push({k,amt,cum:run,future,val,list:inM,lab:`${MSH[m]} ${String(y).slice(2)}`,long:new Date(y,m,1).toLocaleDateString("en-GB",{month:"long",year:"numeric"})});
  }
- // value: known only for now; projected forward at 12% a year
- const nowVal=totalValue();
- const vals=[];
- const r=Math.pow(1.12,1/12)-1;
- let v=nowVal;
- for(let i=0;i<N;i++){
-  if(i<done-1)vals.push(null);                 // no recorded history for earlier months
-  else if(i===done-1)vals.push(nowVal);
-  else{v=v*(1+r)+planned; vals.push(showProj?v:null)}
- }
- const peak=Math.max.apply(null,[].concat(bars.map(b=>b.cum),vals.filter(x=>x!=null),showProj?[1000000]:[]))||1000;
- const sc=niceScale(peak*1.05,5), maxY=sc.max;
- const bw=(W-L-R)/N;
- const x=i=>L+bw*i+bw*0.5;
- const y=val=>T+(H-T-B)*(1-val/maxY);
-
+ const peak=Math.max(1000,...bars.map(b=>b.cum),...bars.map(b=>b.val||0),showProj?1000000:0);
+ const sc=niceScale(peak*1.05,5), maxY=sc.max, bw=(W-L-R)/N;
+ const x=i=>L+bw*i+bw*0.5, y=val=>T+(H-T-B)*(1-val/maxY);
+ const fmtY=val=>val>=1e6?"฿"+(val/1e6).toFixed(2).replace(/\.?0+$/,"")+"m":"฿"+Math.round(val/1000)+"k";
  let g="";
- for(let i=0;i<=sc.ticks;i++){const val=sc.step*i;
-  g+=`<line x1="${L}" y1="${y(val)}" x2="${W-R}" y2="${y(val)}" stroke="#C3C9C3"/>
-      <text x="${L-6}" y="${y(val)+4}" text-anchor="end" font-size="${narrow?10:11}" fill="#5C6660">${val>=1e6?"฿"+(val/1e6).toFixed(2).replace(/\.?0+$/,"")+"m":"฿"+Math.round(val/1000)+"k"}</text>`}
+ for(let t=0;t<=sc.ticks;t++){const val=sc.step*t;
+  g+=`<line x1="${L}" y1="${y(val)}" x2="${W-R}" y2="${y(val)}" stroke="#C3C9C3"/><text x="${L-6}" y="${y(val)+4}" text-anchor="end" font-size="${narrow?10:11}" fill="#5C6660">${fmtY(val)}</text>`}
  if(showProj&&maxY>=1000000)
-  g+=`<line x1="${L}" y1="${y(1000000)}" x2="${W-R}" y2="${y(1000000)}" stroke="#8C3B4A" stroke-width="1.5" stroke-dasharray="2 3"/>
-      <text x="${W-R}" y="${y(1000000)-6}" text-anchor="end" font-size="11" fill="#8C3B4A">฿1,000,000 goal</text>`;
-
- // cumulative money-in bars
+  g+=`<line x1="${L}" y1="${y(1e6)}" x2="${W-R}" y2="${y(1e6)}" stroke="#8C3B4A" stroke-width="1.5" stroke-dasharray="2 3"/><text x="${W-R}" y="${y(1e6)-6}" text-anchor="end" font-size="11" fill="#8C3B4A">฿1,000,000 goal</text>`;
+ const w=Math.min(bw*0.68,narrow?42:74);
  let rects="";
- bars.forEach((b,i)=>{
-  const w=Math.min(bw*0.68, narrow?42:74);          // keep bars sane when there are only a couple
-  const bx=L+bw*i+(bw-w)/2, top=y(b.cum), h=(H-B)-top;
-  rects+=`<rect class="mbar" x="${bx.toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}"
-     fill="#37504A" opacity="${b.future?0.28:1}" data-i="${i}" data-fut="${b.future?1:0}" style="cursor:pointer"/>`;
- });
-
- // value line only across months where a value is known
- const pts=[]; vals.forEach((val,i)=>{if(val!=null)pts.push({i,val})});
- const solid=pts.filter(p=>p.i<=done-1), fut=pts.filter(p=>p.i>=done-1);
- const line=a=>a.map((p,k)=>`${k?"L":"M"}${x(p.i).toFixed(1)},${y(p.val).toFixed(1)}`).join("");
- let vline="";
- if(solid.length>1)vline+=`<path d="${line(solid)}" fill="none" stroke="#A8641C" stroke-width="3"/>`;
- if(showProj&&fut.length>1)vline+=`<path d="${line(fut)}" fill="none" stroke="#A8641C" stroke-width="2.5" stroke-dasharray="5 4"/>`;
- // a wide marker across the bar, not a small dot — this is the number that matters
- const bwv=Math.min(bw*0.68, narrow?42:74);
- pts.forEach(p=>{
-  const cur=(p.i===done-1);
-  vline+=`<rect x="${(x(p.i)-bwv/2-5).toFixed(1)}" y="${(y(p.val)-(cur?2.5:1.5)).toFixed(1)}"
-            width="${(bwv+10).toFixed(1)}" height="${cur?5:3}" fill="#A8641C"/>`;
-  if(cur&&N<=6)vline+=`<text x="${x(p.i)}" y="${(y(p.val)-13).toFixed(1)}" text-anchor="middle"
-            font-size="${narrow?11:12}" font-weight="700" fill="#A8641C">worth ${baht(p.val)}</text>`;
- });
- // and label the latest bar's total put in
- // every month actually made gets its running total, in the same place: inside the bar, at its foot
- const dense=N>6;      // too many bars to label without collisions — tap gives the numbers instead
- bars.forEach((b,i)=>{
-  if(b.future||dense)return;
-  const top=y(b.cum), h=(H-B)-top;
-  if(h>30)
-   vline+=`<text x="${x(i)}" y="${(H-B-10).toFixed(1)}" text-anchor="middle"
-        font-size="${narrow?10:11}" font-weight="600" fill="#E4E7E4">${baht(b.cum)}</text>`;
-  else
-   vline+=`<text x="${x(i)}" y="${(top-7).toFixed(1)}" text-anchor="middle"
-        font-size="${narrow?10:11}" font-weight="600" fill="#37504A">${baht(b.cum)}</text>`;
- });
-
- // labels: M number, and the date for months already made
+ bars.forEach((b,i)=>{const top=y(b.cum),h=(H-B)-top;
+  rects+=`<rect class="mbar" x="${(x(i)-w/2).toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" fill="#37504A" opacity="${b.future?0.28:1}" data-i="${i}" data-fut="${b.future?1:0}" style="cursor:pointer"/>`});
+ const pts=bars.map((b,i)=>({i,val:b.val})).filter(p=>p.val!=null);
+ const solid=pts.filter(p=>!bars[p.i].future), fut=pts.filter(p=>bars[p.i].future||p.i===curIdx-1);
+ const line=a=>a.map((p,n)=>`${n?"L":"M"}${x(p.i).toFixed(1)},${y(p.val).toFixed(1)}`).join("");
+ let vl="";
+ if(solid.length>1)vl+=`<path d="${line(solid)}" fill="none" stroke="#A8641C" stroke-width="3"/>`;
+ if(showProj&&fut.length>1)vl+=`<path d="${line(fut)}" fill="none" stroke="#A8641C" stroke-width="2.5" stroke-dasharray="5 4"/>`;
+ pts.forEach(p=>{const cur=p.i===curIdx-1;
+  vl+=`<rect x="${(x(p.i)-w/2-5).toFixed(1)}" y="${(y(p.val)-(cur?2.5:1.5)).toFixed(1)}" width="${(w+10).toFixed(1)}" height="${cur?5:3}" fill="#A8641C"/>`;
+  if(cur&&N<=8)vl+=`<text x="${Math.min(W-R,x(p.i)+w/2+5)}" y="${(y(p.val)-10).toFixed(1)}" text-anchor="end" font-size="${narrow?11:12}" font-weight="700" fill="#A8641C">worth ${baht(p.val)}</text>`});
+ if(N<=8)bars.forEach((b,i)=>{if(b.future)return;const top=y(b.cum),h=(H-B)-top;
+  vl+=h>30?`<text x="${x(i)}" y="${(H-B-10).toFixed(1)}" text-anchor="middle" font-size="${narrow?9.5:11}" font-weight="600" fill="#E4E7E4">${narrow?fmtY(b.cum):baht(b.cum)}</text>`
+          :`<text x="${x(i)}" y="${(top-7).toFixed(1)}" text-anchor="middle" font-size="${narrow?9.5:11}" font-weight="600" fill="#37504A">${narrow?fmtY(b.cum):baht(b.cum)}</text>`});
  let lab="";
+ const every=narrow?(N>9?3:(N>5?2:1)):(N>12?2:1);
  bars.forEach((b,i)=>{
-  const every=narrow?(N>6?3:1):(N>10?2:1);
-  if(i%every!==0&&i!==N-1&&i!==done-1)return;
-  lab+=`<text class="mlab" data-i="${i}" x="${x(i)}" y="${H-B+17}" text-anchor="middle" font-size="${narrow?10:11}" font-weight="600" fill="#18211D">#${b.n}</text>`;
-  if(b.date&&!narrow)lab+=`<text x="${x(i)}" y="${H-B+30}" text-anchor="middle" font-size="10" fill="#5C6660">${esc(b.date.replace(/ 20\d\d$/,""))}</text>`;
- });
-
- el.innerHTML=svgEl(W,H)+g+rects+vline+lab+`</svg>`
-  +`<div class="lgd"><span><u style="background:#37504A;height:10px"></u>Money in, running total</span>
-     <span><u style="background:#A8641C"></u>What it is worth</span>`
-  +(showProj?`<span><u style="background:#8C3B4A"></u>฿1M goal</span><span>faded bars and dashes are the plan ahead</span>`:``)
-  +`</div>`;
-
- // hover or tap a bar: highlight it and show a box beside it
+  const show=(N-1-i)%every===0;
+  lab+=`<g class="mlab${show?" show":""}" data-i="${i}"><text x="${x(i)}" y="${H-B+16}" text-anchor="middle" font-size="${narrow?10:11}" font-weight="700" fill="#18211D">M${b.k}</text><text x="${x(i)}" y="${H-B+29}" text-anchor="middle" font-size="${narrow?9.5:10}" fill="#5C6660">${b.lab}</text></g>`});
+ el.innerHTML=svgEl(W,H)+g+rects+vl+lab+`</svg>`
+  +`<div class="lgd"><span><u style="background:#37504A;height:10px"></u>Money in, running total at month end</span><span><u style="background:#A8641C"></u>What it is worth at month end</span>`
+  +(showProj?`<span><u style="background:#8C3B4A"></u>฿1M goal</span><span>faded bars and dashes are the plan ahead</span>`:``)+`</div>`;
  const svgG=el.querySelector("svg");
  el.querySelectorAll("rect.mbar").forEach(rc=>{
   const show=()=>{
-   const k=+rc.dataset.i, b=bars[k], val=vals[k];
-   svgG.classList.add("hov");
-   svgG.querySelectorAll("[data-i]").forEach(n=>n.classList.toggle("on",+n.dataset.i===k));
-   const buys=b.buys?Object.entries(b.buys).sort((a,c)=>c[1]-a[1]).map(([t,v])=>tipRow(t,baht(v),byT(t).color)).join(""):tipRow("Planned",baht(b.amt));
-   tipShow(el,rc,`<div class="h">${b.date?cLabel(b.n-1)+" · "+esc(b.date):"Contribution "+b.n+" · not yet made"}</div>${buys}`+
-    `<div class="r t"><span>Put in this month</span><b>${baht(b.amt)}</b></div>`+
-    tipRow("Running total",baht(b.cum))+(val!=null?tipRow("Worth",baht(val)):""));
+   const n=+rc.dataset.i, b=bars[n];
+   svgG.classList.add("hov"); svgG.querySelectorAll("[data-i]").forEach(q=>q.classList.toggle("on",+q.dataset.i===n));
+   const rows=b.future?tipRow("Planned",baht(b.amt)):(b.list.length?b.list.map(x=>tipRow(`Contribution ${x.i+1} · ${esc(x.c.date.replace(/ 20\d\d$/,""))}`,baht(sum(x.c.buys)))).join(""):tipRow("No contribution",""));
+   tipShow(el,rc,`<div class="h">Month ${b.k} · ${b.long}${b.future?" · planned":""}</div>${rows}`+
+    `<div class="r t"><span>Put in this month</span><b>${baht(b.amt)}</b></div>`+tipRow("Running total",baht(b.cum))+
+    (b.val!=null?tipRow(b.k===curIdx?"Worth now":(b.future?"Projected worth":"Worth at month end"),baht(b.val)):""));
   };
   rc.addEventListener("click",e=>{e.stopPropagation();show()}); rc.addEventListener("mouseenter",show);
  });
  svgG.addEventListener("mouseleave",()=>tipHide(el));
-
  $("projtoggle").textContent=showProj?"Hide projection":"Show projection";
  $("growthNote").textContent=showProj
-  ? "Bars are the running total put in, one per monthly buy; the amber line is what it is worth. Faded bars carry on at "+baht(planned)+" a month, the dashed line at 12% a year. Tap any bar for its numbers."
-  : "Bars are the running total you have put in, one per monthly buy. The line is what it is worth today.";
+  ? "One bar per month: the running total put in by month end, and the amber line is what it was worth. Faded months carry on at "+baht(planned)+" a month, the dashed line at 12% a year."
+  : "One bar per month: the running total put in by month end. The amber line is what it was worth at each month end.";
 }
 
 function renderMix(){
