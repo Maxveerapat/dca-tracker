@@ -392,6 +392,16 @@
   input.money{text-align:right;font-variant-numeric:tabular-nums}
   input.money.bad{border-color:var(--garnet)!important;background:#F7ECEE!important}
   .ckcard input.money{font-family:inherit;font-size:15px;padding:8px 9px;border:1px solid var(--rule);background:#fff;color:var(--ink);width:100%}
+  .ckgrid.two-col{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:900px){.ckgrid.two-col{grid-template-columns:1fr}}
+  .setup{display:flex;flex-direction:column;gap:18px;max-width:900px}
+  .sgrp{display:flex;flex-direction:column;gap:8px}
+  .sgrp .subh{margin:0}
+  .srow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end;padding:8px 0;border-bottom:1px solid var(--rule)}
+  .srow label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--graphite);min-width:120px;flex:0 1 150px}
+  .srow label.grow{flex:1 1 220px}
+  .srow input,.srow select{font-family:inherit;font-size:14px;padding:6px 7px;border:1px solid var(--rule);background:#fff;color:var(--ink);width:100%}
+  .sgrp>.btnline{align-self:flex-start}
   #chartGrowth svg.hov rect.mbar{opacity:.3}
   #chartGrowth svg.hov rect.mbar.on{opacity:1}
   #chartGrowth svg.hov rect.mbar.on[data-fut="1"]{opacity:.6}
@@ -439,6 +449,7 @@
 <nav class="tabs" role="tablist" aria-label="Views">
   <button role="tab" id="tab-btn-portfolio" aria-controls="tab-portfolio" aria-selected="true">Portfolio</button>
   <button role="tab" id="tab-btn-planner" aria-controls="tab-planner" aria-selected="false">Long Term Planner</button>
+  <button role="tab" id="tab-btn-k" aria-controls="tab-k" aria-selected="false">K</button>
 </nav>
 
 <div id="tab-portfolio" role="tabpanel" aria-labelledby="tab-btn-portfolio">
@@ -605,7 +616,7 @@
     <div class="two">
       <div class="chartbox">
         <h3 class="ct">Monthly burn</h3>
-        <p class="cs">Living costs, insurance and debt payments, by month.</p>
+        <p class="cs">Living costs, insurance and debt payments by month. Solid months are checked in, faded months are scheduled.</p>
         <div id="ch-burn"></div>
         <div class="lgd" id="lg-burn"></div>
       </div>
@@ -617,7 +628,14 @@
       </div>
     </div>
 
-    <h3 class="subh">Debts</h3>
+
+  </div>
+</section>
+
+<!-- DEBTS -->
+<section class="fold" data-fold="p-debts">
+  <button class="foldhead"><span>Debts</span><i></i></button>
+  <div class="foldbody">
     <div class="histwrap" style="margin-top:0">
       <table class="hist debts">
         <thead><tr><th>Debt</th><th>Type</th><th>You pay a month</th><th>Balance now</th><th>Paid off</th></tr></thead>
@@ -723,6 +741,84 @@
 </section>
 
 </div><!-- /tab-planner -->
+
+<!-- ================= K's PLANNER ================= -->
+<div id="tab-k" class="pl" role="tabpanel" aria-labelledby="tab-btn-k" hidden>
+
+<section class="fold" data-fold="k-dash">
+  <button class="foldhead"><span>Dashboard</span><i></i></button>
+  <div class="foldbody">
+    <div class="kpis pk">
+      <div class="kpi"><div class="k">Earn · last check-in</div><div class="v num" id="k-earn">—</div><div class="s" id="k-earn-s"></div></div>
+      <div class="kpi"><div class="k">Burn this month</div><div class="v num" id="k-burn">—</div><div class="s" id="k-burn-s"></div></div>
+      <div class="kpi"><div class="k">Left over · last check-in</div><div class="v num" id="k-left">—</div><div class="s" id="k-left-s"></div></div>
+      <div class="kpi"><div class="k">Still to pay on fixed-term debts</div><div class="v num" id="k-owed">—</div><div class="s" id="k-owed-s"></div></div>
+    </div>
+    <div class="chartbox">
+      <h3 class="ct">Monthly earn</h3>
+      <p class="cs">What came in each checked-in month, by source, against that month's burn.</p>
+      <div id="ch-kinc"></div>
+      <div class="lgd" id="lg-kinc"></div>
+    </div>
+    <div class="chartbox">
+      <h3 class="ct">Monthly burn</h3>
+      <p class="cs">Living costs, fixed costs and debt payments by month. Solid months are checked in, faded months are scheduled.</p>
+      <div id="ch-kburn"></div>
+      <div class="lgd" id="lg-kburn"></div>
+    </div>
+  </div>
+</section>
+
+<section class="fold" data-fold="k-debts">
+  <button class="foldhead"><span>Debts</span><i></i></button>
+  <div class="foldbody">
+    <div class="histwrap" style="margin-top:0">
+      <table class="hist debts">
+        <thead><tr><th>Debt</th><th>Pays a month</th><th>Paid so far</th><th>Still to pay</th><th>Ends</th></tr></thead>
+        <tbody id="k-debts-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="fold" data-fold="k-check">
+  <button class="foldhead"><span>Month-end check-in</span><i></i></button>
+  <div class="foldbody">
+    <form id="k-form" class="ck" novalidate>
+      <div class="ckhead"><label for="k-m">Month<select id="k-m"></select></label><span class="saved" id="k-saved"></span></div>
+      <div class="ckgrid two-col">
+        <fieldset class="ckcard"><legend>Earn</legend>
+          <div id="k-earn-fields"></div>
+          <div class="cktot"><span>Total earn</span><b id="k-ck-earn">฿0.00</b></div>
+        </fieldset>
+        <fieldset class="ckcard"><legend>Burn</legend>
+          <div id="k-burn-fields"></div>
+          <div class="ckfixed" id="k-ck-sched"></div>
+          <div class="cktot"><span>Total burn</span><b id="k-ck-burn">฿0.00</b></div>
+        </fieldset>
+      </div>
+      <div class="cksum" id="k-ck-sum"></div>
+      <button type="submit" class="savebtn" id="k-save">Save and sync</button>
+    </form>
+    <div class="histwrap">
+      <table class="hist">
+        <thead><tr><th>Month</th><th>Earn</th><th>Burn</th><th>Left over</th><th></th></tr></thead>
+        <tbody id="k-hist"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="fold" data-fold="k-setup">
+  <button class="foldhead"><span>Setup</span><i></i></button>
+  <div class="foldbody">
+    <div class="setup" id="k-setup-body"></div>
+    <div class="cacts" style="margin-top:14px"><button class="savebtn" id="k-setup-save">Save setup</button></div>
+    <div class="saved" id="k-setup-saved"></div>
+  </div>
+</section>
+
+</div><!-- /tab-k -->
 
 
 </div>
@@ -850,7 +946,7 @@ function applyFolds(){
  const ui=(state&&state.ui)||{};
  document.querySelectorAll(".fold").forEach(f=>{
   const k=f.dataset.fold;
-  const open = (k in ui) ? !!ui[k] : (k==="dash"||k==="p-dash"||k==="p-check");
+  const open = (k in ui) ? !!ui[k] : (k==="dash"||k==="p-dash"||k==="p-check"||k==="k-dash"||k==="k-check");
   f.classList.toggle("open",open);
  });
 }
@@ -858,7 +954,7 @@ function wireFolds(){
  document.querySelectorAll(".foldhead").forEach(b=>b.addEventListener("click",()=>{
   const f=b.closest(".fold"); f.classList.toggle("open");
   state.ui=state.ui||{}; state.ui[f.dataset.fold]=f.classList.contains("open");
-  save(""); if(f.dataset.fold==="dash"&&f.classList.contains("open"))renderCharts(); if(f.dataset.fold==="p-dash"&&f.classList.contains("open"))renderCharts2();
+  save(""); if(f.dataset.fold==="dash"&&f.classList.contains("open"))renderCharts(); if(f.dataset.fold==="p-dash"&&f.classList.contains("open"))renderCharts2(); if(f.dataset.fold==="k-dash"&&f.classList.contains("open"))renderKCharts();
  }));
 }
 
@@ -1304,6 +1400,7 @@ function render(){
  drawTicket(plan,planTotal);
  renderCharts();
  renderPlanner();
+ renderK();
 }
 
 function nextBuyDate(){
@@ -1634,7 +1731,7 @@ function stackChart(elId,lgId,dtId,cfg){
   g+=`<text x="${L-6}" y="${yy+3.5}" text-anchor="end" font-size="10.5" fill="#5C6660">${t?kb(v):"0"}</text>`}
  const every=n>18?3:(n>9?2:1);
  cfg.months.forEach((m,i)=>{
-  const cx=L+bw*i+bw/2, fut=cfg.futureFrom!=null&&i>=cfg.futureFrom; let acc=0;
+  const cx=L+bw*i+bw/2, fut=cfg.fade?cfg.fade(m):(cfg.futureFrom!=null&&i>=cfg.futureFrom); let acc=0;
   g+=`<g class="col" data-i="${i}">`;
   cfg.series.forEach(s=>{const v=s.vals[i]||0;if(v<=0)return;const y0=y(acc),y1=y(acc+v);acc+=v;
    g+=`<rect x="${cx-w/2}" y="${y1}" width="${w}" height="${Math.max(0,y0-y1)}" fill="${s.color}" opacity="${fut?0.38:1}"/>`});
@@ -1657,7 +1754,7 @@ function stackChart(elId,lgId,dtId,cfg){
  const show=i=>{const m=cfg.months[i];
   svg.classList.add("hov"); svg.querySelectorAll("[data-i]").forEach(n=>n.classList.toggle("on",+n.dataset.i===i));
   const rows=cfg.series.filter(s=>(s.vals[i]||0)>0).map(s=>`<div class="r"><u style="background:${s.color}"></u><span>${s.name}</span><b>${baht(s.vals[i])}</b></div>`).join("");
-  tip.innerHTML=`<div class="h">${mLabel(m)}${cfg.futureFrom!=null&&i>=cfg.futureFrom?" · scheduled":""}</div>${rows||'<div class="r"><span>Nothing</span></div>'}`+
+  tip.innerHTML=`<div class="h">${mLabel(m)}${(cfg.fade?cfg.fade(m):(cfg.futureFrom!=null&&i>=cfg.futureFrom))?" · scheduled":""}</div>${rows||'<div class="r"><span>Nothing</span></div>'}`+
    `<div class="r t"><span>Total</span><b>${baht(tot[i])}</b></div>`+(cfg.line?`<div class="r"><u class="ln"></u><span>${cfg.line.name}</span><b>${baht(cfg.line.vals[i])}</b></div>`:"")+(cfg.extra?cfg.extra(i):"");
   tip.hidden=false;
   const k=svg.getBoundingClientRect().width/W, cx=(L+bw*i+bw/2)*k, half=w*k/2+8, cw=el.clientWidth, tw=tip.offsetWidth, th=tip.offsetHeight;
@@ -1697,10 +1794,10 @@ function renderCharts2(){
   series:EARN_KEYS.map(([k,name])=>({name,color:COL[k],vals:lm.map(m=>+mrec(m)[k]||0)})),
   line:{name:"Burn",vals:lm.map(burnFor)},
   extra:i=>{const d=earnOf(lm[i])-burnFor(lm[i]);return `<div class="r"><span>Left after burn</span><b class="${d>=0?"tpos":"tneg"}">${d>=0?"":"−"}${baht(Math.abs(d))}</b></div>`}});
- const bm=range(nowM(),"2028-12");
- stackChart("ch-burn","lg-burn","dt-burn",{months:bm,
-  series:[{name:"Living",color:COL.living,vals:bm.map(m=>LIVING)},
-          {name:"Insurance",color:COL.ins,vals:bm.map(m=>INSURANCE)},
+ const bm=range(PLAN_START,"2028-12"), bi=bm.indexOf(nowM());
+ stackChart("ch-burn","lg-burn","dt-burn",{months:bm,fade:m=>!logged(m),nowAt:bi,
+  series:[{name:"Living",color:COL.living,vals:bm.map(m=>burnParts(m).living)},
+          {name:"Insurance",color:COL.ins,vals:bm.map(m=>burnParts(m).ins)},
           {name:"House",color:COL.house,vals:bm.map(m=>payments(m).house)},
           {name:"Tesla",color:COL.tesla,vals:bm.map(m=>payments(m).tesla)},
           {name:"Mum's loan",color:COL.mumloan,vals:bm.map(m=>payments(m).mumloan)},
@@ -1852,17 +1949,18 @@ function renderPlanner(){
 }
 
 /* ---------- tabs ---------- */
+const TABS={
+ portfolio:{title:"Monthly contribution tracker",sub:"฿50,000 at each month end · target ฿1,000,000 by December 2027 · started 26 August 2026"},
+ planner:{title:"Long Term Planner",sub:"Financial freedom · emergency fund, passive income, own company, angel investing"},
+ k:{title:"K's Planner",sub:"Monthly earn, burn and payments"}};
+function curTab(){const h=location.hash.slice(1);if(TABS[h])return h;const t=state.ui&&state.ui.tab;return TABS[t]?t:"portfolio"}
 function applyTab(){
- const pl=(location.hash==="#planner")||((state.ui&&state.ui.tab)==="planner"&&location.hash!=="#portfolio");
- $("tab-portfolio").hidden=pl; $("tab-planner").hidden=!pl;
- $("tab-btn-portfolio").setAttribute("aria-selected",String(!pl));
- $("tab-btn-planner").setAttribute("aria-selected",String(pl));
- $("apptitle").textContent=pl?"Long Term Planner":"Monthly contribution tracker";
- $("appsub").textContent=pl?"Financial freedom · emergency fund, passive income, own company, angel investing"
-                           :"฿50,000 at each month end · target ฿1,000,000 by December 2027 · started 26 August 2026";
- if(pl)renderCharts2(); else renderCharts();
+ const t=curTab();
+ Object.keys(TABS).forEach(k=>{$("tab-"+k).hidden=k!==t;$("tab-btn-"+k).setAttribute("aria-selected",String(k===t))});
+ $("apptitle").textContent=TABS[t].title; $("appsub").textContent=TABS[t].sub;
+ if(t==="planner")renderCharts2(); else if(t==="k"){if(typeof renderK==="function")renderK()} else renderCharts();
 }
-function setTab(t){state.ui=state.ui||{};state.ui.tab=t;try{history.replaceState(null,"",location.pathname+location.search+(t==="planner"?"#planner":""))}catch(e){}applyTab();renderPlanner();save("")}
+function setTab(t){state.ui=state.ui||{};state.ui.tab=t;try{history.replaceState(null,"",location.pathname+location.search+(t==="portfolio"?"":"#"+t))}catch(e){}applyTab();renderPlanner();save("")}
 
 async function saveAndSync(msgEl,label){
  persistPrices(); state.updatedAt=Date.now();
@@ -1882,6 +1980,7 @@ function wirePlanner(){
  P();
  $("tab-btn-portfolio").addEventListener("click",()=>setTab("portfolio"));
  $("tab-btn-planner").addEventListener("click",()=>setTab("planner"));
+ $("tab-btn-k").addEventListener("click",()=>setTab("k"));
  $("p-m").innerHTML=checkinMonths().map(m=>`<option value="${m}">${mLabel(m)}</option>`).join("");
  $("p-m").addEventListener("change",fillMonth);
  $("p-form").addEventListener("input",()=>{$("p-saved").textContent="Unsaved changes";ckTotals()});
@@ -1947,6 +2046,168 @@ function wirePlanner(){
  $("p-add").addEventListener("click",()=>{const L=P().initiatives;L.push({id:"i"+Date.now(),name:"New initiative",stage:"idea",est:null,capital:null,hours:null});save("");renderInits();const el=$("in-n-"+(L.length-1));if(el){el.focus();el.select()}});
  fillMonth();
 }
+/* ================= K's PLANNER ================= */
+const K_SEED={start:"2026-10",living:35000,
+ sources:[{id:"m",name:"Condo commission from M"},{id:"k",name:"Condo commission from K"}],
+ fixed:[{id:"condo",name:"Condo rent and utilities",amt:16000},{id:"family",name:"Family",amt:10000}],
+ debts:[{id:"maxnew",name:"Max New",amt:30000,start:"2026-10",months:6},{id:"maxog",name:"Max OG",amt:20000,start:"2026-10",months:null}]};
+const K_SRC_COL=["#2C5F7A","#7FA3B8","#4C6B2F","#A8641C","#6B5B8E"];
+const K_DEBT_COL=["#8C3B4A","#6B5B8E","#7A6A2E","#A8641C","#2C5F7A"];
+let kEdit=null;
+function K(){
+ state.k=state.k||{}; const k=state.k;
+ if(!k.config)k.config=JSON.parse(JSON.stringify(K_SEED));
+ // one-time additions for setups saved before they existed
+ k.config.mig=k.config.mig||{};
+ if(!k.config.mig.family){if(!k.config.fixed.some(f=>f.id==="family"))k.config.fixed.push({id:"family",name:"Family",amt:10000});k.config.mig.family=1}
+ k.months=k.months||{};
+ return k;
+}
+const kcfg=()=>K().config;
+const krec=m=>K().months[m]||{};
+const klogged=m=>!!krec(m).savedAt;
+const kId=p=>p+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);
+function kDue(d,m){return (m>=d.start&&(d.months==null||mDiff(d.start,m)<d.months))?d.amt:0}
+function kEnd(d){return d.months==null?null:addM(d.start,d.months-1)}
+function kPaid(d,upto){if(upto<d.start)return 0;const n=mDiff(d.start,upto)+1;return (d.months==null?n:Math.min(n,d.months))*d.amt}
+function kBurnParts(m){const c=kcfg(),r=krec(m);
+ const parts=[{name:"Living costs",color:"#8C968F",v:typeof r.living==="number"?r.living:c.living}];
+ c.fixed.forEach(f=>parts.push({name:f.name,color:"#B9C0BA",v:(r.fixed&&typeof r.fixed[f.id]==="number")?r.fixed[f.id]:f.amt}));
+ c.debts.forEach((d,i)=>parts.push({name:d.name,color:K_DEBT_COL[i%K_DEBT_COL.length],v:kDue(d,m),debt:true}));
+ return parts}
+const kBurn=m=>kBurnParts(m).reduce((a,p)=>a+p.v,0);
+const kEarn=m=>{const r=krec(m).inc||{};return kcfg().sources.reduce((a,s)=>a+(+r[s.id]||0),0)};
+function kMonths(){return range(kcfg().start,nowM()).reverse()}
+
+function renderKKpis(){
+ const c=kcfg(), lm=kMonths().filter(klogged)[0];
+ if(lm){const e=kEarn(lm),b=kBurn(lm);
+  $("k-earn").textContent=bahtd(e); $("k-earn-s").textContent=mLabel(lm);
+  $("k-left").textContent=bahtd(e-b); $("k-left").className="v num "+(e-b>=0?"pos":"neg"); $("k-left-s").textContent=`after ${bahtd(b)} burn`;
+ } else {$("k-earn").textContent="—";$("k-earn-s").textContent="No check-in yet";$("k-left").textContent="—";$("k-left").className="v num";$("k-left-s").textContent=""}
+ const cm=nowM(); $("k-burn").textContent=bahtd(kBurn(cm)); $("k-burn-s").textContent=`${mLabel(cm)}${klogged(cm)?"":" · planned"}`;
+ const fixedTerm=c.debts.filter(d=>d.months!=null), left=fixedTerm.reduce((a,d)=>a+Math.max(0,d.amt*d.months-kPaid(d,addM(cm,-1))),0);
+ const ongoing=c.debts.filter(d=>d.months==null).reduce((a,d)=>a+d.amt,0);
+ $("k-owed").textContent=bahtd(left); $("k-owed-s").textContent=ongoing?`plus ${bahtd(ongoing)} a month with no end date`:"";
+}
+function renderKCharts(){
+ const c=kcfg(), lm=kMonths().slice().reverse().filter(klogged);
+ if(!lm.length){$("ch-kinc").innerHTML=`<p class="cs" style="padding:40px 0;text-align:center">The first bar appears once K saves a month-end check-in.</p>`;$("lg-kinc").innerHTML=""}
+ else stackChart("ch-kinc","lg-kinc",null,{months:lm,
+  series:c.sources.map((s,i)=>({name:s.name,color:K_SRC_COL[i%K_SRC_COL.length],vals:lm.map(m=>+((krec(m).inc||{})[s.id])||0)})),
+  line:{name:"Burn",vals:lm.map(kBurn)},
+  extra:i=>{const d=kEarn(lm[i])-kBurn(lm[i]);return `<div class="r"><span>Left after burn</span><b class="${d>=0?"tpos":"tneg"}">${bahtd(d)}</b></div>`}});
+ const end=addM(c.start,14), bm=range(c.start,end>"2027-12"?end:"2027-12"), names=kBurnParts(c.start);
+ stackChart("ch-kburn","lg-kburn",null,{months:bm,fade:m=>!klogged(m),nowAt:Math.max(0,bm.indexOf(nowM())),
+  series:names.map((p,i)=>({name:p.name,color:p.color,vals:bm.map(m=>kBurnParts(m)[i].v)}))});
+}
+function renderKDebts(){
+ const c=kcfg(), cm=nowM(), prev=addM(cm,-1);
+ $("k-debts-body").innerHTML=c.debts.length?c.debts.map(d=>{const paid=kPaid(d,prev);
+  const total=d.months==null?null:d.amt*d.months;
+  return `<tr><td>${esc(d.name)}</td><td>${bahtd(d.amt)}<span class="role">from ${mShort(d.start)}</span></td><td>${bahtd(paid)}<span class="role">to end of ${mShort(prev)}</span></td>
+   <td>${total==null?"—<span class=\"role\">ongoing</span>":`${bahtd(Math.max(0,total-paid))}<span class="role">${Math.max(0,d.months-Math.max(0,Math.min(d.months,mDiff(d.start,prev)+1)))} of ${d.months} payments left</span>`}</td>
+   <td>${total==null?"No end date":mShort(kEnd(d))}</td></tr>`}).join("")
+  :`<tr><td colspan="5">No debts set up.</td></tr>`;
+}
+function kFormFields(){
+ const c=kcfg();
+ $("k-earn-fields").innerHTML=c.sources.map(s=>`<label for="k-in-src-${s.id}"><span>${esc(s.name)}</span><input type="text" class="money" inputmode="decimal" autocomplete="off" id="k-in-src-${s.id}"></label>`).join("");
+ $("k-burn-fields").innerHTML=`<label for="k-in-living"><span>Living costs</span><input type="text" class="money" inputmode="decimal" autocomplete="off" id="k-in-living" placeholder="${moneyFmt(c.living)}"></label>`+
+  c.fixed.map(f=>`<label for="k-in-fx-${f.id}"><span>${esc(f.name)}</span><input type="text" class="money" inputmode="decimal" autocomplete="off" id="k-in-fx-${f.id}" placeholder="${moneyFmt(f.amt)}"></label>`).join("");
+}
+function kTotals(){
+ const m=$("k-m").value; if(!m)return; const c=kcfg();
+ const val=(id,fb)=>{const v=parseMoney($(id).value);return v===undefined?fb:(isNaN(v)?0:v)};
+ const earn=c.sources.reduce((a,s)=>a+val("k-in-src-"+s.id,0),0);
+ const sched=c.debts.map(d=>[d.name,kDue(d,m)]).filter(x=>x[1]>0);
+ const burn=val("k-in-living",c.living)+c.fixed.reduce((a,f)=>a+val("k-in-fx-"+f.id,f.amt),0)+sched.reduce((a,x)=>a+x[1],0);
+ $("k-ck-sched").innerHTML=sched.length?`<div class="cksub">Debt payments, scheduled</div>`+sched.map(([n,v])=>`<div class="ckrow"><span>${esc(n)}</span><b>${bahtd(v)}</b></div>`).join(""):"";
+ $("k-ck-earn").textContent=bahtd(earn); $("k-ck-burn").textContent=bahtd(burn);
+ $("k-ck-sum").innerHTML=`<span>Earn <b>${bahtd(earn)}</b></span><i>−</i><span>Burn <b>${bahtd(burn)}</b></span><i>=</i><span class="${earn-burn>=0?"pos":"neg"}">Left over <b>${bahtd(earn-burn)}</b></span>`;
+}
+function kFill(){
+ const m=$("k-m").value, c=kcfg();
+ $("k-form").querySelectorAll("input,button[type=submit]").forEach(x=>x.disabled=!m);
+ if(!m){$("k-saved").textContent="No months to check in yet.";return}
+ const r=krec(m);
+ c.sources.forEach(s=>{$("k-in-src-"+s.id).value=moneyFmt((r.inc||{})[s.id])});
+ $("k-in-living").value=moneyFmt(r.living);
+ c.fixed.forEach(f=>{$("k-in-fx-"+f.id).value=moneyFmt((r.fixed||{})[f.id])});
+ $("k-saved").textContent=r.savedAt?`Last saved ${stamp(r.savedAt)}`:"Not saved yet";
+ kTotals();
+}
+function renderKHist(){
+ const ms=kMonths();
+ $("k-hist").innerHTML=ms.length?ms.map(m=>{const ok=klogged(m),e=kEarn(m),b=kBurn(m);
+  return `<tr><td>${mShort(m)}</td><td>${ok?bahtd(e):"—"}</td><td>${bahtd(b)}</td><td class="${ok&&e-b<0?"low":""}">${ok?bahtd(e-b):"—"}</td>
+   <td class="acts">${ok?`<button class="linkbtn" data-kh="edit" data-m="${m}">Edit</button><button class="linkbtn del" data-kh="del" data-m="${m}">Delete</button>`:`<button class="linkbtn" data-kh="edit" data-m="${m}">Add</button>`}</td></tr>`}).join("")
+  :`<tr><td colspan="5">No months yet.</td></tr>`;
+}
+function renderKSetup(){
+ if(!kEdit)kEdit=JSON.parse(JSON.stringify(kcfg()));
+ const c=kEdit, opts=sel=>range("2026-01","2028-12").map(m=>`<option value="${m}"${m===sel?" selected":""}>${mShort(m)}</option>`).join("");
+ const row=(kind,i,inner)=>`<div class="srow" data-kind="${kind}" data-i="${i}">${inner}<button class="iconbtn" data-sact="del" aria-label="Remove">×</button></div>`;
+ $("k-setup-body").innerHTML=`
+  <div class="sgrp"><h3 class="subh">Tracking</h3>
+   <div class="srow"><label>Start month<select data-f="start">${opts(c.start)}</select></label><label>Typical living costs (฿)<input type="text" class="money" inputmode="decimal" data-f="living" value="${moneyFmt(c.living)}"></label></div></div>
+  <div class="sgrp"><h3 class="subh">Income sources</h3>
+   ${c.sources.map((s,i)=>row("sources",i,`<label class="grow">Name<input type="text" data-f="name" value="${esc(s.name).replace(/"/g,"&quot;")}"></label>`)).join("")}
+   <button class="btnline" data-sact="add" data-kind="sources">Add income source</button></div>
+  <div class="sgrp"><h3 class="subh">Fixed costs</h3>
+   ${c.fixed.map((f,i)=>row("fixed",i,`<label class="grow">Name<input type="text" data-f="name" value="${esc(f.name).replace(/"/g,"&quot;")}"></label><label>Per month (฿)<input type="text" class="money" inputmode="decimal" data-f="amt" value="${moneyFmt(f.amt)}"></label>`)).join("")}
+   <button class="btnline" data-sact="add" data-kind="fixed">Add fixed cost</button></div>
+  <div class="sgrp"><h3 class="subh">Debts</h3>
+   ${c.debts.map((d,i)=>row("debts",i,`<label class="grow">Name<input type="text" data-f="name" value="${esc(d.name).replace(/"/g,"&quot;")}"></label><label>Per month (฿)<input type="text" class="money" inputmode="decimal" data-f="amt" value="${moneyFmt(d.amt)}"></label><label>From<select data-f="start">${opts(d.start)}</select></label><label>Months<input type="text" inputmode="numeric" data-f="months" value="${d.months==null?"":d.months}" placeholder="No end"></label>`)).join("")}
+   <button class="btnline" data-sact="add" data-kind="debts">Add debt</button></div>`;
+}
+function renderK(){
+ if(!state)return; K();
+ renderKKpis(); renderKDebts(); renderKHist();
+ if(!$("tab-k").hidden)renderKCharts();
+ if(!$("k-setup-body").contains(document.activeElement))renderKSetup();
+}
+function kFillMonths(){const sel=$("k-m"),cur=sel.value;sel.innerHTML=kMonths().map(m=>`<option value="${m}">${mLabel(m)}</option>`).join("");if(cur&&kMonths().includes(cur))sel.value=cur}
+function wireK(){
+ K(); kFormFields(); kFillMonths();
+ $("k-m").addEventListener("change",kFill);
+ $("k-form").addEventListener("input",()=>{$("k-saved").textContent="Unsaved changes";kTotals()});
+ $("k-form").addEventListener("submit",async e=>{
+  e.preventDefault(); const m=$("k-m").value; if(!m)return; const c=kcfg(), k=K();
+  const num=id=>{const v=parseMoney($(id).value);return (v===undefined||isNaN(v))?undefined:v};
+  const r={inc:{},fixed:{}};
+  c.sources.forEach(s=>{const v=num("k-in-src-"+s.id);if(v!==undefined)r.inc[s.id]=v});
+  const lv=num("k-in-living"); if(lv!==undefined)r.living=lv;
+  c.fixed.forEach(f=>{const v=num("k-in-fx-"+f.id);if(v!==undefined)r.fixed[f.id]=v});
+  r.savedAt=Date.now(); k.months[m]=r; $("k-save").disabled=true;
+  await saveAndSync("k-saved",`${mLabel(m)}:`); $("k-save").disabled=false; renderK();
+ });
+ $("k-hist").addEventListener("click",async e=>{const b=e.target.closest("button[data-kh]");if(!b)return;const m=b.dataset.m;
+  if(b.dataset.kh==="edit"){$("k-m").value=m;kFill();$("k-form").scrollIntoView({behavior:"smooth",block:"center"});return}
+  if(b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent="Tap again";setTimeout(()=>{b.dataset.confirm="";b.textContent="Delete"},3000);return}
+  delete K().months[m]; if($("k-m").value===m)kFill(); renderK(); await saveAndSync("k-saved",`${mLabel(m)} deleted.`)});
+ // setup editor
+ const body=$("k-setup-body");
+ body.addEventListener("change",e=>{const t=e.target,f=t.dataset.f;if(!f)return;const r=t.closest(".srow[data-kind]");
+  const v=t.classList.contains("money")?parseMoney(t.value):t.value;
+  if(!r){if(f==="living"){if(v!==undefined&&!isNaN(v))kEdit.living=v}else kEdit[f]=v;return}
+  const it=kEdit[r.dataset.kind][+r.dataset.i];
+  if(f==="amt"){if(v!==undefined&&!isNaN(v))it.amt=v}
+  else if(f==="months"){const n=parseInt(t.value,10);it.months=isFinite(n)&&n>0?n:null}
+  else it[f]=f==="name"?(t.value.trim()||it[f]):t.value;
+ });
+ body.addEventListener("click",e=>{const b=e.target.closest("button[data-sact]");if(!b)return;e.preventDefault();
+  if(b.dataset.sact==="add"){const kd=b.dataset.kind;
+   if(kd==="sources")kEdit.sources.push({id:kId("s"),name:"New income source"});
+   if(kd==="fixed")kEdit.fixed.push({id:kId("f"),name:"New fixed cost",amt:0});
+   if(kd==="debts")kEdit.debts.push({id:kId("d"),name:"New debt",amt:0,start:nowM(),months:null});
+  } else {const r=b.closest(".srow");kEdit[r.dataset.kind].splice(+r.dataset.i,1)}
+  renderKSetup()});
+ $("k-setup-save").addEventListener("click",async()=>{
+  K().config=JSON.parse(JSON.stringify(kEdit)); kEdit=null;
+  kFormFields(); kFillMonths(); kFill(); renderK(); await saveAndSync("k-setup-saved","Setup:")});
+ kFill();
+}
 
 function flush(){
  if(!syncOn()||!pushPending)return;
@@ -1958,14 +2219,14 @@ function flush(){
  }catch(e){}
 }
 let rsz=null;
-window.addEventListener("resize",()=>{clearTimeout(rsz);rsz=setTimeout(()=>{try{renderCharts();renderCharts2()}catch(e){}},250)});
+window.addEventListener("resize",()=>{clearTimeout(rsz);rsz=setTimeout(()=>{try{renderCharts();renderCharts2();if(!$("tab-k").hidden)renderKCharts()}catch(e){}},250)});
 window.addEventListener("pagehide",flush);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush()});
 
 (async()=>{
  loadSync();
  if(!syncOn())setTimeout(()=>syncNote("Data is on this device only. Press Sync across devices to share it with your phone and laptop."),0);
- await loadState();seedUnitsFromCost();wireFolds();applyFolds();wirePlanner();applyTab();render();await refresh();
+ await loadState();seedUnitsFromCost();wireFolds();applyFolds();wirePlanner();wireK();applyTab();render();await refresh();
 })();
 </script>
 </body>
